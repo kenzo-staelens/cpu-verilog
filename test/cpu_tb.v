@@ -1,4 +1,4 @@
-`timescale  1ns / 1ps
+`timescale  1ps / 1ps
 
 module tb_CPU;
 
@@ -12,7 +12,8 @@ parameter PERSIST_ADDR_WIDTH  = 14;
 
 // CPU Inputs
 reg   clk                                  = 0 ;
-reg   rst                                  = 1 ;
+// reg   rst                                  = 1 ;
+reg   [15:0] tick                          = 0 ;
 reg   [REGISTER_BITS-1:0]  peek_address    = 0 ;
 reg   [WORD_WIDTH-1:0]  incoming_io        = 0 ;
 
@@ -28,10 +29,7 @@ begin
     forever #(PERIOD/2)  clk=~clk;
 end
 
-initial
-begin
-    #(PERIOD*2) rst  =  0;
-end
+
 
 CPU #(
     .INST_SIZE          ( INST_SIZE          ),
@@ -41,7 +39,7 @@ CPU #(
     .PERSIST_ADDR_WIDTH ( PERSIST_ADDR_WIDTH ))
  u_CPU (
     .clk                           ( clk                                               ),
-    .rst                           ( rst                                               ),
+    // .rst                           ( rst                                               ),
     .peek_address                  ( peek_address                  [REGISTER_BITS-1:0] ),
     .incoming_io                   ( incoming_io                   [WORD_WIDTH-1:0]    ),
 
@@ -52,54 +50,89 @@ CPU #(
 );
 
 initial begin
-    $monitor("rst=%b clk=%b inst64=%h r0=%h r1=%h r2=%h r3=%h r4=%h r5=%h inst_a=%h inst_b=%h pl_1_int=%b b_int=%h b_exec=%h",
-    rst, clk, u_CPU.inst64,
+
+forever #10
+    $display("inst64 = %h\n    regfile\n\t%h %h %h %h %h %h %h %h\n\t%h %h %h %h\n    pipeline\n\tinternal = %h\n\tb_internal = %h\n\tmode = %b\n\topcode = %h\n\ta_exec = %h\n\tb_exec = %h\n\tdst_1 = %h\n    control\n\tdata_bus = %h\n\talu_1 = %h\n\talu_2 = %h\n\tnext_pc = %h\n\tprogram_we = %b\n\treg_addr_a = %h\n\taddr_data=%h\n\tdata_in=%h",//\n    mem\n\tram[28] = %h\n\tram[32] = %h\n\tram[33] = %h\n\tram[36] = %h\n\tram[37] = %h",
+    // rst,
+    u_CPU.inst64,
     u_CPU.register_file.storage[0],
     u_CPU.register_file.storage[1],
     u_CPU.register_file.storage[2],
     u_CPU.register_file.storage[3],
     u_CPU.register_file.storage[4],
     u_CPU.register_file.storage[5],
-    u_CPU.inst_a,
-    u_CPU.inst_b,
+    u_CPU.register_file.storage[6],
+    u_CPU.register_file.storage[7],
+    0, // u_CPU.register_file.data_1,
+    0, // u_CPU.register_file.data_2,
+    0, // u_CPU.register_file.data_3,
+    0, // u_CPU.register_file.data_4,
     u_CPU.pipeline_1.intermediate,
     u_CPU.pipeline_1.data_b_int,
-    u_CPU.pipeline_1.arg_b_exec
+    u_CPU.pipeline_1.mode_exec,
+    u_CPU.pipeline_1.opcode_exec,
+    u_CPU.pipeline_1.arg_a_exec,
+    u_CPU.pipeline_1.arg_b_exec,
+    u_CPU.dst_1,
+    u_CPU.data_bus,
+    u_CPU.alu_out_1,
+    u_CPU.alu_out_2,
+    u_CPU.program_address,
+    u_CPU.progmem_we,
+    u_CPU.pipeline_1.reg_addr_a,
+    u_CPU.progmem.addr_data,
+    u_CPU.progmem.data_in,
+    // u_CPU.progmem.gen_banks[4].ram[3],// u_CPU.progmem.ram[28],
+    // u_CPU.progmem.gen_banks[0].ram[4], // u_CPU.progmem.ram[32],
+    // u_CPU.progmem.gen_banks[1].ram[4], // u_CPU.progmem.ram[33],
+    // u_CPU.progmem.gen_banks[4].ram[4], // u_CPU.progmem.ram[36],
+    // u_CPU.progmem.gen_banks[5].ram[4], // u_CPU.progmem.ram[37],
 );
-end
+// $display("ram_content\n\t%h %h %h %h %h %h %h %h\n\t%h %h %h %h %h %h %h %h\n\t%h %h %h %h %h %h %h %h\n\t%h %h %h %h %h %h %h %h\n\t%h %h %h %h %h %h %h %h",
+//     u_CPU.progmem.gen_banks[0].ram[0],
+//     u_CPU.progmem.gen_banks[1].ram[0],
+//     u_CPU.progmem.gen_banks[2].ram[0],
+//     u_CPU.progmem.gen_banks[3].ram[0],
+//     u_CPU.progmem.gen_banks[4].ram[0],
+//     u_CPU.progmem.gen_banks[5].ram[0],
+//     u_CPU.progmem.gen_banks[6].ram[0],
+//     u_CPU.progmem.gen_banks[7].ram[0],
+//     u_CPU.progmem.gen_banks[0].ram[1],
+//     u_CPU.progmem.gen_banks[1].ram[1],
+//     u_CPU.progmem.gen_banks[2].ram[1],
+//     u_CPU.progmem.gen_banks[3].ram[1],
+//     u_CPU.progmem.gen_banks[4].ram[1],
+//     u_CPU.progmem.gen_banks[5].ram[1],
+//     u_CPU.progmem.gen_banks[6].ram[1],
+//     u_CPU.progmem.gen_banks[7].ram[1],
+//     u_CPU.progmem.gen_banks[0].ram[2],
+//     u_CPU.progmem.gen_banks[1].ram[2],
+//     u_CPU.progmem.gen_banks[2].ram[2],
+//     u_CPU.progmem.gen_banks[3].ram[2],
+//     u_CPU.progmem.gen_banks[4].ram[2],
+//     u_CPU.progmem.gen_banks[5].ram[2],
+//     u_CPU.progmem.gen_banks[6].ram[2],
+//     u_CPU.progmem.gen_banks[7].ram[2],
+//     u_CPU.progmem.gen_banks[0].ram[3],
+//     u_CPU.progmem.gen_banks[1].ram[3],
+//     u_CPU.progmem.gen_banks[2].ram[3],
+//     u_CPU.progmem.gen_banks[3].ram[3],
+//     u_CPU.progmem.gen_banks[4].ram[3],
+//     u_CPU.progmem.gen_banks[5].ram[3],
+//     u_CPU.progmem.gen_banks[6].ram[3],
+//     u_CPU.progmem.gen_banks[7].ram[3],
+//     u_CPU.progmem.gen_banks[0].ram[4],
+//     u_CPU.progmem.gen_banks[1].ram[4],
+//     u_CPU.progmem.gen_banks[2].ram[4],
+//     u_CPU.progmem.gen_banks[3].ram[4],
+//     u_CPU.progmem.gen_banks[4].ram[4],
+//     u_CPU.progmem.gen_banks[5].ram[4],
+//     u_CPU.progmem.gen_banks[6].ram[4],
+//     u_CPU.progmem.gen_banks[7].ram[4]
+// );
 
+end
 initial begin
-// add r1, r0, 22081
-// add r2, r0, 22098
-// str16 r1, 8
-// str16 r2, 10
-// add r4, r1, 1
-// add r5, r2, 2
-// add r3, r1, r2
-// jmp 32
-
-u_CPU.progmem.gen_banks[0].ram[0] = 16'h5610;
-u_CPU.progmem.gen_banks[1].ram[0] = 16'h5641;
-u_CPU.progmem.gen_banks[2].ram[0] = 16'h5620;
-u_CPU.progmem.gen_banks[3].ram[0] = 16'h5652;
-u_CPU.progmem.gen_banks[0].ram[1] = 16'h5110;
-u_CPU.progmem.gen_banks[1].ram[1] = 16'h0008;
-u_CPU.progmem.gen_banks[2].ram[1] = 16'h5120;
-u_CPU.progmem.gen_banks[3].ram[1] = 16'h000A;
-u_CPU.progmem.gen_banks[0].ram[2] = 16'h5641;
-u_CPU.progmem.gen_banks[1].ram[2] = 16'h0001;
-u_CPU.progmem.gen_banks[2].ram[2] = 16'h5652;
-u_CPU.progmem.gen_banks[3].ram[2] = 16'h0002;
-u_CPU.progmem.gen_banks[0].ram[3] = 16'h4631;
-u_CPU.progmem.gen_banks[1].ram[3] = 16'h0200;
-u_CPU.progmem.gen_banks[2].ram[3] = 16'h700F;
-u_CPU.progmem.gen_banks[3].ram[3] = 16'h0020;
+#225 $finish;
 end
-
-initial
-begin
-    #80
-    $finish;
-end
-
 endmodule

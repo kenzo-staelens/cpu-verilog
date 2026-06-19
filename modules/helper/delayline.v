@@ -6,7 +6,7 @@ module DelayLine # (
     input [WORD_WIDTH-1:0] in,
     output reg [WORD_WIDTH-1:0] out
 );
-    always @ (posedge clk or posedge rst) begin
+    always @(posedge clk) begin
         if (rst)
             out <= {WORD_WIDTH{1'b0}};
         else

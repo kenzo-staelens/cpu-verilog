@@ -6,7 +6,7 @@ module PersistentBRAM # (
     input stall,
     input write_enable,
     input read_enable,
-    input [WORD_WIDTH-1:0] addr_data,
+    input [ADDRESS_WIDTH-1:0] addr_data,
     input [WORD_WIDTH-1:0] data_in,
     output [WORD_WIDTH-1:0] data_out
 );
@@ -20,17 +20,17 @@ module PersistentBRAM # (
     integer i;
     initial begin
         for (i=0; i<BANK_WIDTH; i = i + 1) begin
-            ram[i]=0;
+            ram[i]<=0;
         end
-        outreg = 0;
+        outreg <= 0;
     end
 
     always @(posedge clk) begin
         if (!stall) begin
             if (write_enable) ram[actual_address] <= data_in;
-            else if (read_enable) outreg <= ram[actual_address];
+            outreg <= (read_enable) ? ram[actual_address] : {WORD_WIDTH{1'b0}};
         end
     end
 
-    assign data_out = (read_enable) ? outreg : {WORD_WIDTH{1'bz}};
+    assign data_out = outreg;
 endmodule

@@ -12,9 +12,9 @@ module CPU #(
     // TODO parameters for persistent/program memory
 ) (
     input clk,
+    input rst,
     // additionally used as ready signal from external sources
     // this module runs when reset is low
-    input rst,
     input [REGISTER_BITS-1:0] peek_address,
     output [WORD_WIDTH-1:0] peek_out,
 
@@ -186,7 +186,7 @@ module CPU #(
         .out(pipelined_clock)
     );
     
-    wire jmp_flag=(opcode_1 & arg_b_1[3:0])!=0; // any is same
+    wire jmp_flag=(opcode_1[2:0] & arg_a_1[2:0])^(opcode_1[3])!=0; // any is same or invert
     wire ctrl_en_jmp;
     // ctrl_en_io is a module output
     wire ctrl_en_store;
@@ -197,7 +197,7 @@ module CPU #(
 
     ControlExec #(.WORD_WIDTH(WORD_WIDTH)) control_signals (
         .mode(mode_1),
-        .jmp_addr(arg_b_2),
+        .jmp_addr(arg_b_1),
         .jmp_flag(jmp_flag),
         .data_alu(alu_out_1),
         .data_io(intermediate_incoming_io),
@@ -243,8 +243,11 @@ module CPU #(
     // program memory
     // NOTE: store address = arg b (imm. or reg)
     // as it's more efficient than using a register to address ram?
-    wire progmem_re = (str_select == 2'b00) && ctrl_en_store && (opcode_1[1:0] == 2'b00);
-    wire progmem_we = (str_select == 2'b00) && ctrl_en_store && (opcode_1[1:0] == 2'b01);
+    // NOTE: being read directly from pipeline unit as it's always only pipeline 1
+    // if pipeline changes -> todo: clean this up
+    wire ctrl_en_store_2 = pipeline_1.mode == 2'b11;
+    wire progmem_re = (pipeline_1.opcode[3:2] == 2'b00) && ctrl_en_store_2 && (pipeline_1.opcode[1:0] == 2'b00);
+    wire progmem_we = (pipeline_1.opcode[3:2] == 2'b00) && ctrl_en_store_2 && (pipeline_1.opcode[1:0] == 2'b01);
 
     ProgMemBRAM #(
         .WORD_WIDTH(WORD_WIDTH),
@@ -254,20 +257,23 @@ module CPU #(
         .clk(clk),
         .stall(rst),
 
-        //read
         .write_enable(progmem_we),
         .read_enable(progmem_re),
-        .addr_data(arg_b_1),
+        .addr_data(pipeline_1.data_b_int),
+        // .addr_data(pipeline_1.immediate_value),
         .data_out(data_bus_progmem),
-        .data_in(arg_a_1),
+        .data_in(reg_resp_a_1),
+        // .data_in(reg_resp_a_1),
 
         //instruction
         .inst_addr(program_address), // base of the address, goes [base: base+7]
         .inst64(inst64)
     );
+    // reg_resp_a_1
+    // reg_resp_b_1
 
-    wire persistent_re = (str_select == 2'b01) && ctrl_en_store && (opcode_1[1:0] == 2'b00);
-    wire persistent_we = (str_select == 2'b01) && ctrl_en_store && (opcode_1[1:0] == 2'b01);
+    wire persistent_re = (pipeline_1.opcode == 2'b01) && ctrl_en_store_2 && (opcode_1[1:0] == 2'b00);
+    wire persistent_we = (pipeline_1.opcode == 2'b01) && ctrl_en_store_2 && (opcode_1[1:0] == 2'b01);
 
     PersistentBRAM #(
         .WORD_WIDTH(WORD_WIDTH),
@@ -281,9 +287,9 @@ module CPU #(
         .write_enable(persistent_we),
         .read_enable(persistent_re),
 
-        .addr_data(arg_b_1),
+        .addr_data(pipeline_1.data_b_int[PERSIST_ADDR_WIDTH-1:0]),
         .data_out(data_bus_persist),
-        .data_in(arg_a_1)
+        .data_in(reg_resp_a_1)
     );
 
     wire [WORD_WIDTH-1:0] data_bus_persist;
