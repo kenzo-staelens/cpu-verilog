@@ -4,7 +4,7 @@ set_property CONFIG_VOLTAGE 3.3 [current_design]
 
 set_property PACKAGE_PIN W5 [get_ports clk]
 set_property IOSTANDARD LVCMOS33 [get_ports clk]
-create_clock -period 50.000 -name sys_clk_pin -add [get_ports clk]
+create_clock -period 25.000 -name sys_clk_pin -add [get_ports clk]
 
 ## LEDs
 set_false_path -to [get_ports {peek_out[*]}]

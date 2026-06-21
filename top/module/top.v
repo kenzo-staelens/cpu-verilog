@@ -6,28 +6,16 @@ module Top#(
     input [REGISTER_BITS-1:0] peek_address,
     output [WORD_WIDTH-1:0] peek_out
 );
-
-    reg [1:0] reset_pulse = 0;
-
-    reg rst = 1;
-    
-    initial begin
-        reset_pulse = 0;
-        rst = 1;
-    end
-
-    always @(posedge clk) begin
-        if (reset_pulse<3) reset_pulse <= reset_pulse+1;
-        else rst<=0;
-    end
+    wire rst;
+    BootModule boot(.clk(clk), .rst_wire(rst));
 
 
 CPU #(
-    .INST_SIZE(4),
+    .INST_SIZE(2),
     .WORD_WIDTH(WORD_WIDTH),
     .REGISTER_BITS(REGISTER_BITS),
     .RAM_ADDR_WIDTH(16),
-    .PERSIST_ADDR_WIDTH(14)
+    .PERSIST_ADDR_WIDTH(15)
 ) cpu (
     .rst(rst),
     .clk(clk),
@@ -48,3 +36,26 @@ CPU #(
     .outgoing_io()
 );
 endmodule
+
+module BootModule #(
+    parameter PULSES=3
+) (
+    input clk,
+    output rst_wire
+);
+
+    assign rst_wire = rst;
+    reg [$clog2(PULSES)-1:0] reset_pulse;
+    reg rst;
+
+    initial begin
+        reset_pulse = 0;
+        rst = 1;
+    end
+
+    always @(posedge clk) begin
+        if (reset_pulse<PULSES) reset_pulse <= reset_pulse+1;
+        else rst<=0;
+    end
+endmodule
+

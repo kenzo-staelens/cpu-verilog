@@ -14,7 +14,7 @@ module PersistentBRAM # (
     localparam  BANK_WIDTH = (2**(ADDRESS_WIDTH));
     wire [ADDRESS_WIDTH-1:0] actual_address = addr_data[ADDRESS_WIDTH-1:0];
 
-    (* ram_style = "block" *) reg [WORD_WIDTH-1:0] ram [0:BANK_WIDTH-1];
+    (* ram_decomp = "power", ram_style = "block" *) reg [WORD_WIDTH-1:0] ram [0:BANK_WIDTH-1];
     reg [WORD_WIDTH-1:0] outreg;
 
     integer i;
@@ -28,9 +28,9 @@ module PersistentBRAM # (
     always @(posedge clk) begin
         if (!stall) begin
             if (write_enable) ram[actual_address] <= data_in;
-            outreg <= (read_enable) ? ram[actual_address] : {WORD_WIDTH{1'b0}};
+            outreg <= ram[actual_address];
         end
     end
 
-    assign data_out = outreg;
+    assign data_out = (read_enable) ? outreg : {WORD_WIDTH{1'b0}};
 endmodule
