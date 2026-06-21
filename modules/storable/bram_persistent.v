@@ -28,9 +28,9 @@ module PersistentBRAM # (
     always @(posedge clk) begin
         if (!stall) begin
             if (write_enable) ram[actual_address] <= data_in;
-            outreg <= (read_enable) ? ram[actual_address] : {WORD_WIDTH{1'b0}};
+            outreg <= ram[actual_address];
         end
     end
 
-    assign data_out = outreg;
+    assign data_out = (read_enable) ? outreg : {WORD_WIDTH{1'b0}};
 endmodule
