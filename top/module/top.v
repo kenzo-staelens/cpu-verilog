@@ -8,22 +8,16 @@ module Top#(
 );
 
     reg [1:0] reset_pulse = 0;
-
     reg rst = 1;
-    
-    initial begin
-        reset_pulse = 0;
-        rst = 1;
-    end
 
     always @(posedge clk) begin
-        if (reset_pulse<3) reset_pulse <= reset_pulse+1;
-        else rst<=0;
+        reset_pulse <= reset_pulse+1;
+        if (reset_pulse==3) rst<=0;
     end
 
 
 CPU #(
-    .INST_SIZE(4),
+    .INST_SIZE(2),
     .WORD_WIDTH(WORD_WIDTH),
     .REGISTER_BITS(REGISTER_BITS),
     .RAM_ADDR_WIDTH(16),

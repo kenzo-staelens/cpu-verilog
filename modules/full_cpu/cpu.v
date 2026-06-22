@@ -4,7 +4,8 @@
 // program memory and persistent storage are written as implementation specific
 // due to output concatenation
 module CPU #(
-    parameter INST_SIZE = 4,
+    parameter INST_SIZE = 2,
+    // may need a parameter for instruction word width
     parameter WORD_WIDTH = 16,
     parameter REGISTER_BITS = 4,
     parameter RAM_ADDR_WIDTH = 16,
@@ -29,7 +30,7 @@ module CPU #(
     input [WORD_WIDTH-1:0] incoming_io,
     output [WORD_WIDTH-1:0 ] outgoing_io
 );
-    localparam INSTRUCTION_BITS = INST_SIZE*8;
+    localparam INSTRUCTION_BITS = INST_SIZE*16;
 
     wire [INSTRUCTION_BITS*2-1:0] inst64;
     wire [WORD_WIDTH-1:0] data_bus;

@@ -1,6 +1,6 @@
 module Clock #(
     parameter WORD_WIDTH = 16,
-    parameter INST_SIZE = 4
+    parameter INST_SIZE = 2 // number of 16-bit words
 ) (
     input clk,
     input rst,

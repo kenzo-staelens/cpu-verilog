@@ -11,20 +11,20 @@ module ProgMemBRAM # (
     input [WORD_WIDTH-1:0] data_in,
     output [WORD_WIDTH-1:0] data_out,
 
-    //input [WORD_WIDTH-1:0] inst_addr,
+    //input [WORD_WIDTH-1:0] inst_addr_l,
     input [15:0] inst_addr,
     // for the external modules to figure out
     // handling larger blocks of incoming data
     output [63:0] inst64
 );
 
-    // somehow complains inst_addr [15] and addr_data[15] unused?
+    // somehow complains inst_addr_l [15] and addr_data[15] unused?
     //should convert to a mux if possible
     // double width for case of weird read between 2 address lines
     // and we do not want to duplicate the entire block of bram to allow 2 read ports + x
     // with a little bit of extra indexing wires this may even support 8bit cells but not preferred
     // due to bram block sizes being naturally 18 or 36 bits (which 16 fits nicely
-    // assign inst64 = inst_bank[128-16-(inst_addr_x[2:0]+1)*16-1 -:64];
+    // assign inst64 = inst_bank[128-16-(inst_addr_l[2:0]+1)*16-1 -:64];
     wire [127:0] inst_wire = {
         gen_banks[0].inst_reg,
         gen_banks[1].inst_reg,
@@ -35,8 +35,11 @@ module ProgMemBRAM # (
         gen_banks[6].inst_reg,
         gen_banks[7].inst_reg
     };
+    reg [63:0] inst64_reg;
     assign inst64 = (stall) ? inst_wire[127:+64] : inst_wire[(7-inst_addr[2:0]+1)*16-1 -:64];
-
+    always @(posedge clk) begin
+        inst64_reg <= (stall) ? inst_wire[127:+64] : inst_wire[(7-inst_addr[2:0]+1)*16-1 -:64];
+    end
 
     assign data_out = (!read_enable) ? 0 :
                       (addr_data[2:0] == 0) ? gen_banks[0].data_bank :

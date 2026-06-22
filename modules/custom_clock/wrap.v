@@ -1,6 +1,6 @@
 `define hazard_type Hazard32
 module Clock_wrapper #(
-    parameter INST_SIZE = 4,
+    parameter INST_SIZE = 2, // number of 16-bit words
     parameter WORD_WIDTH = 16
 ) (
     input clk,
@@ -15,7 +15,7 @@ module Clock_wrapper #(
     output [INSTRUCTION_BITS-1:0] inst_b
 );
     
-    localparam INSTRUCTION_BITS = INST_SIZE*8;
+    localparam INSTRUCTION_BITS = INST_SIZE*16;
     wire hazard_out;
     wire stall;
     wire do_jmp;

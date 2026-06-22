@@ -2,7 +2,7 @@
 
 module Pipeline # (
     parameter WORD_WIDTH = 16,
-    parameter INST_SIZE = 4,
+    parameter INST_SIZE = 2,
     parameter REGISTER_BITS = 4 // number of bits to index a register
 ) (
     input clk,
@@ -26,7 +26,7 @@ module Pipeline # (
     output [WORD_WIDTH-1:0] arg_a_exec,
     output [WORD_WIDTH-1:0] arg_b_exec
 );
-    localparam INSTRUCTION_BITS = INST_SIZE *8;
+    localparam INSTRUCTION_BITS = INST_SIZE *16;
     localparam OPCODE_BITS = 4;
 
     wire [INSTRUCTION_BITS-1:0] intermediate; // fetch -> decode
