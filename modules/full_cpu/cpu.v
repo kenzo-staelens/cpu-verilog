@@ -22,7 +22,7 @@ module CPU #(
     // reserved signals
     // note IO is, in addition to IO signals
     // kind of a trash can for other uncategorized signals
-    // 0 = NOP
+    // 0 = (SS)NOP
     // 1 = counter
     output [3:0] opcode,
     output ctrl_en_io,
@@ -118,6 +118,7 @@ module CPU #(
     ALU #(
         .WORD_WIDTH(WORD_WIDTH)
     ) alu_1 (
+        .clk(clk),
         .opcode(opcode_1),
         .arg_a(arg_a_1),
         .arg_b(arg_b_1),
@@ -158,6 +159,7 @@ module CPU #(
     ALU #(
         .WORD_WIDTH(WORD_WIDTH)
     ) alu_2 (
+        .clk(clk),
         .opcode(opcode_2),
         .arg_a(arg_a_2),
         .arg_b(arg_b_2),

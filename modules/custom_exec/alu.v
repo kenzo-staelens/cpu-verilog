@@ -1,6 +1,7 @@
 module ALU #(
     parameter WORD_WIDTH = 16
 ) (
+    input clk, // only exists here for multiplier
     input [3:0] opcode,
     input [WORD_WIDTH-1:0] arg_a,
     input [WORD_WIDTH-1:0] arg_b,
@@ -8,6 +9,11 @@ module ALU #(
 );
 
     wire [WORD_WIDTH-1:0] cmp;
+
+    // optional: future multiply optimization for warnings
+    (* mult_style = "pipe_none" *) wire [WORD_WIDTH-1:0] multiply_wire;
+    assign multiply_wire = arg_a*arg_b;
+
     // CMP flags = 3 bits
     assign cmp[WORD_WIDTH-1:3]=0;
     assign cmp[0] = (arg_a==arg_b);
@@ -24,7 +30,8 @@ module ALU #(
                  (opcode == 4'b0111) ? arg_a << arg_b   :  // 7 LSL
                  (opcode == 4'b1000) ? arg_a >> arg_b   :  // 8 LSR
                  (opcode == 4'b1001) ? cmp              :  // 9 CMP
-                 (opcode == 4'b1010) ? arg_a * arg_b    :  // 10 MUL
+                 (opcode == 4'b1010) ? multiply_wire  :  // 10 MUL
+                //  (opcode == 4'b1010) ? arg_a * arg_b    :  // 10 MUL
                                   0; // default
 
 endmodule

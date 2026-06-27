@@ -4,7 +4,8 @@ set_property CONFIG_VOLTAGE 3.3 [current_design]
 
 set_property PACKAGE_PIN W5 [get_ports clk]
 set_property IOSTANDARD LVCMOS33 [get_ports clk]
-create_clock -period 25.000 -name sys_clk_pin -add [get_ports clk]
+# clock is in ns period, not MHz, 20ns = 50MHz
+create_clock -period 20.000 -name sys_clk_pin -add [get_ports clk]
 
 ## LEDs
 set_false_path -to [get_ports {peek_out[*]}]
@@ -114,3 +115,9 @@ set_property IOSTANDARD LVCMOS33 [get_ports {peek_address[3]}]
 # set_property IO_BUFFER_TYPE none [get_ports ctrl_en_io]
 # set_property IO_BUFFER_TYPE none [get_ports incoming_io]
 # set_property IO_BUFFER_TYPE none [get_ports outgoing_io]
+
+##USB-RS232 Interface
+set_property PACKAGE_PIN B18 [get_ports uart_serial_in]
+	set_property IOSTANDARD LVCMOS33 [get_ports uart_serial_in]
+set_property PACKAGE_PIN A18 [get_ports uart_serial_out]
+	set_property IOSTANDARD LVCMOS33 [get_ports uart_serial_out]
