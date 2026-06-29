@@ -6,10 +6,12 @@ parser.add_argument('--filename', '-f', required=True)
 parser.add_argument('--outfile', '-o', required=True)
 parser.add_argument('--verbose', '-v', action='store_true')
 parser.add_argument('--debug', '-d', action='store_true')
+parser.add_argument('--dry-run', action='store_true')
 
-def render_state(args, instructions):
+def render_state(hdr, args, instructions):
     if not args.verbose:
         return
+    print(hdr)
     for line in instructions:
         if args.debug:
             print(repr(line))
@@ -23,10 +25,10 @@ if __name__ == '__main__':
     file_parser = Parser(args.filename)
     instructions = file_parser.parse_file()
 
-    render_state(args, instructions)
+    render_state('parse', args, instructions)
     resolver = Resolver(instructions)
-    resolver.resolve_addresses()
-    # render_state(args, instructions)
+    instructions = resolver.resolve()
+    render_state('resolve', args, instructions)
     
-    assembler = Assembler(args.outfile, instructions)
+    assembler = Assembler(args.outfile, args.dry_run, instructions)
     assembler.write_file(args.verbose)

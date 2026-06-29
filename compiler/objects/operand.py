@@ -113,5 +113,4 @@ class Operand:
             x for i,x in enumerate(['register', 'literal', 'address', 'word'])
             if expect_flags[i]
         ])
-        print(re.match)
         raise OperandError(f'Unexpected operand {operand}, expected one of\n{expects}')

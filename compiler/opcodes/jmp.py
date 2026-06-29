@@ -1,8 +1,8 @@
 from compiler.objects import Inst, Operand
 
 class BaseJMP(Inst):
-    def __init__(self, line_nr):
-        super().__init__(line_nr)
+    def __init__(self, line_nr, line_src):
+        super().__init__(line_nr, line_src)
         self._mode = 2
         
     def parse_args(self, args):

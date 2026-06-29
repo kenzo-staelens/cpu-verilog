@@ -3,8 +3,8 @@ from .operand import Operand
 
 class Inst(Line):
     _OPCODE = 0
-    def __init__(self, line_nr):
-        super().__init__(line_nr)
+    def __init__(self, line_nr, line_src):
+        super().__init__(line_nr, line_src)
         self._opcode = self._OPCODE
         self._mode = 0
         self._immediate = 0
@@ -35,3 +35,6 @@ class Inst(Line):
             ops.append(('arg_b' ,self._arg_b))
         ops: str = ' '.join(f'{x[0]}={x[1]}' for x in ops)
         return f'{self.line_nr: >4d}: \x1b[36m{self._MNEMONIC}\x1b[0m \x1b[33m<Mode: {self._mode}>\x1b[0m \x1b[35m<Immediate: {int(self._immediate)}>\x1b[0m {ops}'
+
+    def parse_args(self, args):
+        pass

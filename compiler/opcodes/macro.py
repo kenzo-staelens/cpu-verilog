@@ -2,6 +2,8 @@ from compiler.objects import Inst
 from .jmp import JMP
 from compiler.directives.directives import Label
 
+# fully internal (not %macro definitions) but ones that don't
+# 1:1 map to an opcode in the ISA
 # bunch of random crap (multi) instruction shorthands
 class Macro(Inst):
     def parse_args(self, args):
@@ -16,9 +18,9 @@ class HLT(Macro):
         # while i could use relative labels
         # that might just cause more of a pain down the line
         labelname = f'halt_{self.line_nr}'
-        label = Label(self.line_nr)
+        label = Label(self.line_nr, self.line_src)
         label.parse_args([labelname])
-        jmp = JMP(self.line_nr)
+        jmp = JMP(self.line_nr + 1, self.line_src)
         jmp.parse_args([labelname])
         return [
             label,
