@@ -1,4 +1,4 @@
-from objects.instruction import Inst, Operand
+from compiler.objects.instruction import Inst, Operand
 
 class BaseAlu(Inst):
     def __init__(self, *args):

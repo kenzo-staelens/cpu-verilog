@@ -1,6 +1,6 @@
 import re
 from .line import Line
-from errors import OperandError, MissingRegisterError, InvalidLiteralError
+from compiler.errors import OperandError, MissingRegisterError, InvalidLiteralError
 
 class Operand:
     def __init__(self, inst: Line, value:int|str=0, literal:bool=True, resolved:bool=True, used=True):
@@ -102,7 +102,7 @@ class Operand:
             or operand in {'zr', 'flags', 'sp'}
         ):
             return self.parse_register(inst, operand)
-        if allow_literal and re.match(r'(0(o|x|b))?\d+',operand, ):
+        if allow_literal and re.match(r'(0(o|x|b))?\d+$',operand):
             return self.parse_literal(inst, operand)
         if allow_address and operand.startswith('='):
             return self.parse_address(inst, operand)

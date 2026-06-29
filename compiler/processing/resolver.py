@@ -1,6 +1,8 @@
-from objects import Inst, Directive, Operand 
-from directives.directives import Label
-from errors import ResolverError
+from compiler.objects import Inst, Directive, Operand 
+from compiler.directives.directives import Label
+from compiler.errors import ResolverError
+import re
+from typing import cast
 
 class Resolver:
     def __init__(self, instructions, inst_width = 2):
@@ -12,28 +14,75 @@ class Resolver:
     def resolve_directive(self, directive: Directive):
         self.current_address = directive.resolve(self.current_address)
         if isinstance(directive, Label):
+            if directive._labelname.isnumeric():
+                if directive._labelname not in self.labels:
+                    self.labels[directive._labelname] = []
+                self.labels[directive._labelname].append((directive.line_nr, self.current_address))
+                return
+            
             if directive._labelname in self.labels:
                 raise ResolverError(f'label {directive._labelname} already defined on address {directive.line_nr}')
-            self.labels[directive._labelname] = self.current_address
+            else:
+                self.labels[directive._labelname] = self.current_address
 
     def resolve_instruction(self, inst: Inst):
         if inst._arg_b.literal:
             inst._immediate = True
         if not inst._arg_b.resolved:
             inst._arg_b.resolve()
-            if inst._mode == 2:  # jmp
-                self.resolve_label(inst._arg_b)
         self.current_address += self.inst_width
+        print(self.current_address, inst.line_nr)
 
-    def resolve_label(self, arg_b: Operand):
+    def resolve_label(self, line_nr, arg_b: Operand):
         arg_b._address = True
-        arg_b.value = self.labels[arg_b.unresolved_value]
+        if arg_b.unresolved_value not in self.labels and not re.match(
+            r'\d+(b|f)',
+            cast(str, arg_b.unresolved_value),
+        ):
+            raise ResolverError(f'Failed to resolve label {arg_b.unresolved_value}')
+        label_address = self.labels.get(arg_b.unresolved_value)
+        if isinstance(label_address, int):
+            arg_b.value = label_address
+            return
+        if match := re.match(r'(\d+)(b|f)', cast(str, arg_b.unresolved_value)):
+            labelname = match.group(1)
+            direction = match.group(2)
+            
+            def predicate(label_line):
+                if direction == 'b':
+                    return label_line < line_nr
+                if direction == 'f':
+                    return label_line > line_nr
+                raise ResolverError(f'Failed to resolve label {arg_b.unresolved_value}')
+            
+            label_addresses = self.labels[labelname]
+            label_address = None
+            for l_line, l_addr in label_addresses:
+                if not predicate(l_line):
+                    continue
+                if label_address is None:
+                    label_address = l_addr
+                    continue
+                
+                if abs(label_address - l_line) < abs(label_address-line_nr):
+                    label_address = l_addr
+            
+            if label_address is not None:
+                arg_b.value = label_address
+                return
+
+        raise ResolverError(f'Failed to resolve label {arg_b.unresolved_value}')
+        
 
     def resolve_addresses(self):
         for inst in self.instructions:
             if isinstance(inst, Directive):
                 self.resolve_directive(inst)
-            elif isinstance(inst, Inst):
+            if isinstance(inst, Inst):
                 self.resolve_instruction(inst)
-            else:
+            if not isinstance(inst, (Directive, Inst)):
                 raise NotImplementedError(f'Instruction Type (type{inst}) not implemented')
+        for inst in self.instructions:
+            # process labels
+            if isinstance(inst, Inst) and inst._mode == 2:  # jmp
+                self.resolve_label(inst.line_nr, inst._arg_b)

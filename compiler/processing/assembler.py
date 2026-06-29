@@ -1,6 +1,7 @@
-from objects import Line, Inst, Directive
 from enum import IntEnum
-from errors import CompileError
+from typing import cast
+from compiler.objects import Line, Inst, Directive
+from compiler.errors import CompileError
 
 class WriteModes(IntEnum):
     BIN = 1
@@ -20,12 +21,12 @@ class Assembler:
         encoded += inst._mode << 29
         encoded += inst._immediate << 28
         encoded += inst._opcode << 24
-        encoded += inst._dst.value << 20
-        encoded += inst._arg_a.value << 16
+        encoded += cast(int, inst._dst.value) << 20
+        encoded += cast(int, inst._arg_a.value) << 16
         if inst._immediate:
-            encoded += inst._arg_b.value
+            encoded += cast(int, inst._arg_b.value)
         else:
-            encoded += inst._arg_b.value << 8
+            encoded += cast(int, inst._arg_b.value) << 8
         inst.encoded = encoded
 
     def assemble(self):

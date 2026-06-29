@@ -1,5 +1,4 @@
-from objects.instruction import Inst
-from objects.operand import Operand
+from compiler.objects import Inst, Operand
 
 class IOBase(Inst):
     _DIRECTION = 'out'
@@ -9,9 +8,9 @@ class IOBase(Inst):
     
     def parse_args(self, args):
         if self._DIRECTION == 'out':
-            self._dst = Operand.parse_operand(args[0], allow_register=True)
+            self._dst = Operand.parse_operand(self,args[0], allow_register=True)
         if self._DIRECTION == 'in':
-            self._arg_b = Operand.parse_operand(args[0], allow_register=True, allow_literal=True)
+            self._arg_b = Operand.parse_operand(self, args[0], allow_register=True, allow_literal=True)
 
 class NOP(IOBase):
     _MNEMONIC = 'nop'

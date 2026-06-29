@@ -1,4 +1,4 @@
-from objects.directive import Directive
+from compiler.objects.directive import Directive
 
 class Label(Directive):
     _MNEMONIC = 'label'

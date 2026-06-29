@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from processing import Parser, Resolver, Assembler
+from compiler.processing import Parser, Resolver, Assembler
 
 parser = ArgumentParser(__name__)
 parser.add_argument('--filename', '-f', required=True)
@@ -24,10 +24,9 @@ if __name__ == '__main__':
     instructions = file_parser.parse_file()
 
     render_state(args, instructions)
-
     resolver = Resolver(instructions)
     resolver.resolve_addresses()
-    render_state(args, instructions)
+    # render_state(args, instructions)
     
     assembler = Assembler(args.outfile, instructions)
     assembler.write_file(args.verbose)

@@ -5,5 +5,4 @@ str r2, 0x12
 add r4, r1, 1
 add r5, r2, 2
 add r3, r1, r2
-.label end
-    jmp end
+hlt

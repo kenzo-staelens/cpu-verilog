@@ -1,4 +1,4 @@
-from objects.instruction import Inst, Operand
+from compiler.objects import Inst, Operand
 
 class BaseMEM(Inst):
     def __init__(self, *args):

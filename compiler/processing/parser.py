@@ -1,7 +1,9 @@
 import sys
-from errors import MissingOpcodeError, MissingDirectiveError, ParseError
-from opcodes import OPCODES
-from directives import DIRECTIVES
+from compiler.errors import MissingOpcodeError, MissingDirectiveError, ParseError
+from compiler.opcodes import OPCODES
+from compiler.directives import DIRECTIVES
+
+# note: directives are going to bbe a bitch to process
 
 class Parser:
     def __init__(self, filename):
