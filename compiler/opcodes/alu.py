@@ -1,11 +1,12 @@
 from compiler.objects.instruction import Inst, Operand
 
 class BaseAlu(Inst):
+    _NUM_ARGS = 3
     def __init__(self, *args):
         super().__init__(*args)
         self._mode = 1
 
-    def parse_args(self, args):
+    def _parse_args(self, args):
         self._dst = Operand.parse_operand(self, args[0], allow_register=True)
         self._arg_a = Operand.parse_operand(self, args[1], allow_register=True)
         self._arg_b = Operand.parse_operand(self, args[2], allow_literal=True, allow_register=True)
@@ -48,8 +49,14 @@ class LSR(BaseAlu):
     _OPCODE = 9
 
 class CMP(BaseAlu):
+    _NUM_ARGS = 2
     _MNEMONIC = 'cmp'
     _OPCODE = 10
+
+    def _parse_args(self, args):
+        self._dst = Operand.parse_operand(self, 'flags', allow_register=True)
+        self._arg_a = Operand.parse_operand(self, args[0], allow_register=True)
+        self._arg_b = Operand.parse_operand(self, args[1], allow_literal=True, allow_register=True)
 
 class MUL(BaseAlu):
     _MNEMONIC = 'mul'

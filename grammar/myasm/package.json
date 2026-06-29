@@ -1,6 +1,6 @@
 {
   "name": "myasm",
-  "displayName": "My Assembly",
+  "displayName": "Veri CPU Assembly",
   "description": "",
   "version": "0.0.1",
   "engines": {
@@ -14,8 +14,9 @@
       {
         "id": "myasm",
         "aliases": [
-          "My Assembly",
-          "myasm"
+          "Veri CPU Assembly",
+          "myasm",
+          "asm"
         ],
         "extensions": [
           ".asm",

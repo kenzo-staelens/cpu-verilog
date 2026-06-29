@@ -2,21 +2,23 @@ from compiler.objects import Inst, Operand
 
 class IOBase(Inst):
     _DIRECTION = 'out'
+    _NUM_ARGS = 1
     def __init__(self, *args):
         super().__init__(*args)
         self._mode = 0
     
-    def parse_args(self, args):
-        if self._DIRECTION == 'out':
-            self._dst = Operand.parse_operand(self,args[0], allow_register=True)
+    def _parse_args(self, args):
         if self._DIRECTION == 'in':
+            self._dst = Operand.parse_operand(self,args[0], allow_register=True)
+        if self._DIRECTION == 'out':
             self._arg_b = Operand.parse_operand(self, args[0], allow_register=True, allow_literal=True)
 
 class NOP(IOBase):
     _MNEMONIC = 'nop'
     _OPCODE = 0
+    _NUM_ARGS = 0
 
-    def parse_args(self, args):
+    def _parse_args(self, args):
         pass
 
 class CLK(IOBase):
@@ -38,8 +40,6 @@ class STS(IOBase):
     _OPCODE = 4
     _DIRECTION = 'in'
     
-    def parse_args(self, args):
-        pass
 
 class DEV(IOBase):
     _MNEMONIC = 'dev'

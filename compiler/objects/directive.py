@@ -10,5 +10,9 @@ class Directive(Line):
         self.address = propose_address
         return self.address
 
-    def parse_args(self, args):
+    def _parse_args(self, args):
         pass
+
+    def copy(self):
+        obj = self.__class__(self.line_nr, self.line_src)
+        return obj

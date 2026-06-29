@@ -60,7 +60,7 @@ class Parser:
                         parsed += self.parse_macro(line, len(parsed), line_src)
                     else:
                         parsed += self.parse_instruction(line, len(parsed), line_src)
-                except ParseError as e:
+                except (ParseError, SyntaxError) as e:
                     print(f"error while parsing line \n{i:0>4d}: {line}")
                     print(str(e))
                     print(line_src)

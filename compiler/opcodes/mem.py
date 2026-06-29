@@ -1,11 +1,12 @@
 from compiler.objects import Inst, Operand
 
 class BaseMEM(Inst):
+    _NUM_ARGS = 2
     def __init__(self, *args):
         super().__init__(*args)
         self._mode = 3
 
-    def parse_args(self, args):
+    def _parse_args(self, args):
         self._dst = Operand.parse_operand(self, args[0], allow_register=True)
         self._arg_b = Operand.parse_operand(self, args[1], allow_literal=True, allow_register=True)
 

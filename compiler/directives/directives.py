@@ -3,11 +3,12 @@ from typing import cast
 
 class Label(Directive):
     _MNEMONIC = 'label'
+    _NUM_ARGS = 1
     def __init__(self, line_nr, line_src):
         super().__init__(line_nr, line_src)
         self._labelname = '???'
 
-    def parse_args(self, args):
+    def _parse_args(self, args):
         self._labelname = args[0]
 
     def __str__(self):
@@ -16,15 +17,21 @@ class Label(Directive):
     def __repr__(self):
         return f'<Label Name={self._labelname}>'
 
+    def copy(self):
+        obj = super().copy()
+        obj._labelname = self._labelname
+        return obj
+
 
 class Macro(Directive):
     _MNEMONIC = 'macro'
+    _NUM_ARGS = 1
 
     def __init__(self, line_nr, line_src):
         super().__init__(line_nr, line_src)
         self.name = '???'
 
-    def parse_args(self, args):
+    def _parse_args(self, args):
         self.name = args[0]
 
     def __str__(self):
@@ -32,6 +39,11 @@ class Macro(Directive):
 
     def __repr__(self):
         return f'<Macrodef Name={self.name}>'
+
+    def copy(self):
+        obj = super().copy()
+        obj.name = self.name
+        return obj
 
 class Endmacro(Directive):
     _MNEMONIC = 'endmacro'

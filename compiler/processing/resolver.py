@@ -113,7 +113,9 @@ class Resolver:
                 if isinstance(inst, UnresolvedMacro):
                     if inst.name not in self.macros:
                         raise ResolverError(f'Macro {inst.name} not found\n{inst.line_src}')
-                    resolved_instructions += cast('list[Line]', self.macros[inst.name])
+                    original = cast('list[Line]', self.macros[inst.name])
+                    new_lines = [x.copy() for x in original]
+                    resolved_instructions += new_lines
                     has_unresolved = True
                     continue
                 resolved_instructions.append(cast(Inst, inst))

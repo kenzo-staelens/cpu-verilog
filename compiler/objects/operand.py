@@ -12,6 +12,12 @@ class Operand:
         self._used = used
         self.instruction = inst
 
+    def copy(self, inst):
+        obj = Operand(inst, self.unresolved_value, self.literal, self.resolved, self._used)
+        obj._address = self._address
+        self.value = self.value
+        return obj
+
     def resolve(self):
         self.resolved = True
 

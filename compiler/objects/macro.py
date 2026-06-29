@@ -3,11 +3,12 @@ from .directive import Directive
 
 class UnresolvedMacro(Directive):
     _MNEMONIC = ''
+    _NUM_ARGS = 1
     def __init__(self, line_nr, line_src):
         super().__init__(line_nr, line_src)
         self.name = '???'
     
-    def parse_args(self, args):
+    def _parse_args(self, args):
         self.name = args[0]
     
     def __str__(self):

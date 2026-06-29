@@ -1,11 +1,12 @@
 from compiler.objects import Inst, Operand
 
 class BaseJMP(Inst):
+    _NUM_ARGS = 1
     def __init__(self, line_nr, line_src):
         super().__init__(line_nr, line_src)
         self._mode = 2
         
-    def parse_args(self, args):
+    def _parse_args(self, args):
         self.arg_a = Operand.parse_operand(self, 'flags', allow_register=True)
         self._arg_b = Operand.parse_operand(self, args[0],allow_literal=True, allow_word=True)
         

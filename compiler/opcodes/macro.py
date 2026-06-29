@@ -6,12 +6,12 @@ from compiler.directives.directives import Label
 # 1:1 map to an opcode in the ISA
 # bunch of random crap (multi) instruction shorthands
 class Macro(Inst):
-    def parse_args(self, args):
+    def _parse_args(self, args):
         raise NotImplementedError('Base macro not a macro')
 
 class HLT(Macro):
     _MNEMONIC = 'hlt'
-    def parse_args(self, args):
+    def _parse_args(self, args):
         return
     
     def build_multi_instruction(self):
