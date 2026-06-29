@@ -1,0 +1,52 @@
+{
+  "name": "MyASM Dark",
+  "inherits": "Dark+",
+  "tokenColors": [
+    {
+      "scope": [
+        "keyword.opcode.myasm"
+      ],
+      "settings": {
+        "foreground": "#569CD6",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": [
+        "keyword.directive.myasm",
+        "keyword.macro.myasm"
+      ],
+      "settings": {
+        "foreground": "#FF7B72",
+        "fontStyle": "bold"
+      }
+    },
+    {
+      "scope": "constant.numeric",
+      "settings": {
+        "foreground": "#B5CEA8"
+      }
+    },
+    {
+      "scope": [
+        "constant.register.myasm",
+        "constant.namedregister.myasm"
+      ],
+      "settings": {
+        "foreground": "#DCDCAA"
+      }
+    },
+    {
+      "scope": "comment.line.semicolon.myasm",
+      "settings": {
+        "foreground": "#6A9955"
+      }
+    },
+    {
+      "scope": "parameters.word",
+      "settings": {
+        "foreground": "#D2A8FF"
+      }
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "My Asm",
+  "scopeName": "source.myasm",
+  "patterns": [
+    { "include": "#parameters" },
+    { "include": "#comments" },
+    { "include": "#keywords" },
+    { "include": "#numbers" },
+    { "include": "#registers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.semicolon.myasm",
+          "match": ";.*$"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.opcode.myasm",
+          "match": "(?i)^\\s*[a-z]+(?:\\.u|\\.s)?\\b"
+        },
+        {
+          "name": "keyword.directive.myasm",
+          "match": "\\.[a-zA-Z_][a-zA-Z0-9_]*\\b"
+        },
+        {
+          "name": "keyword.macro.myasm",
+          "match": "%[a-zA-Z_][a-zA-Z0-9_]*\\b"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.myasm",
+          "match": "\\b0x[0-9a-fA-F]+\\b"
+        },
+        {
+          "name": "constant.numeric.binary.myasm",
+          "match": "\\b0b[01]+\\b"
+        },
+        {
+          "name": "constant.numeric.octal.myasm",
+          "match": "\\b0o[0-7]+\\b"
+        },
+        {
+          "name": "constant.numeric.decimal.myasm",
+          "match": "\\b[0-9]+\\b"
+        }
+      ]
+    },
+    "registers": {
+      "patterns": [
+        {
+          "name": "constant.namedregister.myasm",
+          "match": "\\bzr\\b"
+        },
+        {
+          "name": "constant.register.myasm",
+          "match": "\\br([1-9]|1[0-3])\\b"
+        }
+      ]
+    },
+    "parameters": {
+      "patterns":[
+        {
+          "match": "(\\.label)\\s+(\\w+)",
+          "captures": {
+            "1": { "name": "keyword.directive.myasm" },
+            "2": { "name": "parameters.word.label" }
+          }
+        },
+        {
+          "name": "parameters.word.jump",
+          "match": "(?i)(?<=j..(?:\\.U|\\.S)?\\b)\\s+(\\w+)"
+        }
+      ]
+    }
+  }
+}

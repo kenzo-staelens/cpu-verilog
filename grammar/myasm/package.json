@@ -1,0 +1,98 @@
+{
+  "name": "myasm",
+  "displayName": "My Assembly",
+  "description": "",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.115.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "myasm",
+        "aliases": [
+          "My Assembly",
+          "myasm"
+        ],
+        "extensions": [
+          ".asm",
+          ".masm"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "themes": [
+      {
+        "label": "MyASM Dark",
+        "uiTheme": "vs-dark",
+        "path": "./themes/myasm-dark.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "myasm",
+        "scopeName": "source.myasm",
+        "path": "./syntaxes/myasm.tmLanguage.json"
+      }
+    ],
+    "configurationDefaults": {
+      "[myasm]": {
+        "workbench.colorTheme": "MyASM Dark",
+        "editor.semanticHighlighting.enabled": false
+      },
+      "editor.tokenColorCustomizations": {
+          "textMateRules": [
+            {
+              "scope": [
+                "keyword.opcode.myasm"
+              ],
+              "settings": {
+                "foreground": "#569CD6",
+                "fontStyle": "bold"
+              }
+            },
+            {
+              "scope": [
+                "keyword.directive.myasm",
+                "keyword.macro.myasm"
+              ],
+              "settings": {
+                "foreground": "#FF7B72",
+                "fontStyle": "bold"
+              }
+            },
+            {
+              "scope": "constant.numeric.myasm",
+              "settings": {
+                "foreground": "#B5CEA8"
+              }
+            },
+            {
+              "scope": [
+                "constant.register.myasm",
+                "constant.namedregister.myasm"
+              ],
+              "settings": {
+                "foreground": "#DCDCAA"
+              }
+            },
+            {
+              "scope": "comment.line.semicolon.myasm",
+              "settings": {
+                "foreground": "#6A9955"
+              }
+            },
+            {
+              "scope": "parameters.word",
+              "settings": {
+                "foreground": "#D2A8FF"
+              }
+            }
+          ]
+        }
+    }
+  }
+}
