@@ -95,7 +95,7 @@ class Align(Directive):
 class Section(Directive):
     _MNEMONIC = "section"
     _NUM_ARGS = 1
-    _ALLOW_SECTIONS  = ['text', 'bss', 'data']
+    _ALLOW_SECTIONS  = ['.text', '.bss', '.data', '.vector']
 
     def __init__(self, line_nr, line_src):
         super().__init__(line_nr, line_src)

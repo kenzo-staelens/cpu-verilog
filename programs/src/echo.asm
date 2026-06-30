@@ -2,7 +2,6 @@
 ; uart sts[1] = input waiting
 
 ; Read from terminal then echo back the result
-.org 0x02
 .macro writewait
 .label 1
 sts r1

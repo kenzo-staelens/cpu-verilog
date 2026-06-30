@@ -19,7 +19,7 @@
 .endmacro
 jmp begin_boot
 
-section data  ; not implemented
+section .text  ; not implemented
 .org 0xE000
     .label begin_boot
     ; load "to-read bytes" into r3

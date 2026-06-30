@@ -49,7 +49,7 @@
         },
         {
           "name": "keyword.directive.section.myasm",
-          "match": "\\b(section)\\b(?:\\s+\\.(data|text|bss))?",
+          "match": "\\b(section)\\b(?:\\s+\\.(data|text|bss|vector))?",
           "captures": {
             "1": { "name": "keyword.directive.myasm" },
             "2": { "name": "parameters.section.label.myasm" }

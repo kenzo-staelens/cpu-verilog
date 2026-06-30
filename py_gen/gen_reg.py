@@ -1,11 +1,18 @@
+from argparse import ArgumentParser
+
 BLOCKS = 4
 block_hex = 4
 raw_data = ''
 
-base_path = "/home/kenzo/Desktop/cpu-verilog/reg_data"
-filename = 'ram'
+parser = ArgumentParser(__name__)
+parser.add_argument('--build-dir', required=True)
+parser.add_argument('--basename', required=True)
+parser.add_argument('--outdir', required=True)
+args = parser.parse_args()
 
-with open(f'{base_path}/{filename}.mem', 'r') as f:
+base_outname = 'ram'
+
+with open(f'{args.build_dir}/{args.basename}.mem', 'r') as f:
     for line in f.readlines():
         raw_data += line.replace(' ','').strip()
 
@@ -18,5 +25,5 @@ for bank,data in enumerate(chunks):
     bank_data[mod_bank].append(data)
 
 for i, item in enumerate(bank_data):
-    with open(f'{base_path}/{filename}_{i}.mem', 'w') as f:
+    with open(f'{args.outdir}/{base_outname}_{i}.mem', 'w') as f:
         f.write('\n'.join(item))
