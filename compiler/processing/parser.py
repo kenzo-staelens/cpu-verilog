@@ -1,7 +1,7 @@
 import sys
 from compiler.errors import MissingOpcodeError, MissingDirectiveError, ParseError
 from compiler.opcodes import OPCODES
-from compiler.directives import DIRECTIVES
+from compiler.directives import DIRECTIVES, ABNORMAL_DIRECTIVES
 from compiler.objects import Inst, UnresolvedMacro
 
 # note: directives are going to bbe a bitch to process
@@ -22,7 +22,7 @@ class Parser:
     def parse_directive(self, line, line_nr, line_src):
         mnemonic, args = self.split_line(line)
         if mnemonic not in DIRECTIVES:
-            raise MissingDirectiveError(f'"{mnemonic}" does not exist')
+            raise MissingDirectiveError(f'Directive "{mnemonic}" does not exist')
         operation = DIRECTIVES[mnemonic](line_nr, line_src)
         operation.parse_args(args)
         return operation.build_multi_instruction()
@@ -30,7 +30,7 @@ class Parser:
     def parse_instruction(self, line, line_nr, line_src):
         mnemonic, args = self.split_line(line)
         if mnemonic not in OPCODES:
-            raise MissingOpcodeError(f'"{mnemonic}" does not exist')
+            raise MissingOpcodeError(f'Opcode "{mnemonic}" does not exist')
         operation: Inst = OPCODES[mnemonic](line_nr, line_src)
         operation.parse_args(args)
         return operation.build_multi_instruction()
@@ -54,7 +54,7 @@ class Parser:
                     continue
                 line_src = f'{self.filename}:{i}'
                 try:
-                    if line.startswith('.'):
+                    if line.startswith('.') or any(line.startswith(x._MNEMONIC) for x in ABNORMAL_DIRECTIVES):
                         parsed += self.parse_directive(line, len(parsed), line_src)
                     elif line.startswith('%'):
                         parsed += self.parse_macro(line, len(parsed), line_src)

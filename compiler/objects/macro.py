@@ -16,3 +16,8 @@ class UnresolvedMacro(Directive):
 
     def __repr__(self):
         return f'<Macro Name={self.name}>'
+    
+    def copy(self):
+        res = self.__class__(self.line_nr, self.line_src)
+        res.name = self.name
+        return res

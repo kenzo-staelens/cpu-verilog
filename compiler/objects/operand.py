@@ -89,9 +89,23 @@ class Operand:
         return Operand(inst, 0, True)
 
     @classmethod
+    def parse_char(self, inst: Line, operand: str):
+        if not operand.endswith("'") or len(operand) != 3:
+            raise InvalidLiteralError(f'Invalid char declaration {operand}')
+        return Operand(inst, ord(operand[1]), True)
+
+    @classmethod
     def parse_word(cls, inst, operand: str):
         return Operand(inst,operand, True, False)
 
+    @classmethod
+    def _valid_literal(self, operand):
+        return (
+            re.match(r'\b\d+\b',operand)
+        or re.match('0b[01]+',operand, re.IGNORECASE)
+        or re.match('0o[0-7]+',operand,re.IGNORECASE)
+        or re.match('0x[0-9a-f]+',operand, re.IGNORECASE)
+        )
     
     @classmethod
     def parse_operand(
@@ -101,14 +115,16 @@ class Operand:
         allow_register: bool = False,
         allow_literal: bool = False,
         allow_address: bool = False,
-        allow_word: bool = False
+        allow_word: bool = False,
     ):
         if allow_register and (
             re.match(r'r\d+',operand, )
             or operand in {'zr', 'flags', 'sp'}
         ):
             return self.parse_register(inst, operand)
-        if allow_literal and re.match(r'(0(o|x|b))?\d+$',operand):
+        if allow_literal and operand.startswith("'"):
+            return self.parse_char(inst, operand)
+        if allow_literal and self._valid_literal(operand):
             return self.parse_literal(inst, operand)
         if allow_address and operand.startswith('='):
             return self.parse_address(inst, operand)

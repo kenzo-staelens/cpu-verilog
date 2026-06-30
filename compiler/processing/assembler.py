@@ -1,20 +1,23 @@
 from enum import IntEnum
 from typing import cast
 from compiler.objects import Line, Inst, Directive
-from compiler.errors import CompileError
+from math import ceil
 
 class WriteModes(IntEnum):
     BIN = 1
     HEX = 2
 
-INST_BITS = 32
-
 class Assembler:
-    def __init__(self, outfile, dry_run, instructions: list[Line], mode=WriteModes.HEX):
+    def __init__(self, outfile, dry_run, instructions: list[Line], mem_size=65536, mode=WriteModes.HEX):
         self.outfile = outfile
         self.dry_run = dry_run
         self.write_mode = mode
         self.instructions = instructions
+
+        # note that a memory block is 16 bits (2 bytes)
+        # if we're working on 64K addresses and byte level per cell in this code
+        # we need to "double" mem size for proper file sizes
+        self.file_buffer = [0]*(mem_size*2)
 
     def encode_instruction(self, inst: Inst):
         encoded = 0
@@ -28,7 +31,7 @@ class Assembler:
             encoded += cast(int, inst._arg_b.value)
         else:
             encoded += cast(int, inst._arg_b.value) << 8
-        inst.encoded = encoded
+        inst.encoded = cast(int,encoded)
 
     def assemble(self):
         for line in self.instructions:
@@ -38,44 +41,63 @@ class Assembler:
             elif isinstance(line, Inst):
                 self.encode_instruction(line)
 
-    def write_file_bin(self):
-        def write_fn(inst):
-            return inst.encoded.to_bytes(4, 'big')
+    def write_file_bin(self, chunk_bytes = 4):
+        def write_fn():
+            for i in range(0,len(self.file_buffer), chunk_bytes):
+                chunk = 0
+                for x in range(chunk_bytes):
+                    chunk += self.file_buffer[i+x] << 8*(chunk_bytes-1-x)
+        
+                yield chunk.to_bytes(chunk_bytes)
         return 'wb', write_fn
 
-    def write_file_hex(self):
-        total_symbols = INST_BITS//4
-        total_symbols = total_symbols + max((total_symbols-1)//4, 0)
-        def write_fn(inst):
-            return f'{inst.encoded:0={total_symbols}_x}'.replace('_',' ') + '\n'
+    def write_file_hex(self, read_bytes=2):
+        def write_fn():
+            parity = False
+            for i in range(0,len(self.file_buffer), read_bytes):
+                chunk = 0
+                for x in range(read_bytes):
+                    chunk += self.file_buffer[i+x] << 8*(read_bytes-1-x)
+                write_chunk = f'{chunk:0={2*read_bytes}x}'
+                if not parity:
+                    write_chunk += ' '
+                else:
+                    write_chunk += '\n'
+                parity = not parity
+                yield write_chunk
         return 'w', write_fn
 
-    def _write_file_generator(self, write_fn, outfile, verbose):
-        for inst in self.instructions:
-            if not inst._ENCODABLE:
-                continue
-            if not isinstance(inst.encoded, int):
-                raise CompileError(f'failed to encode instruction\n{inst}')
-            write_data = write_fn(inst)
+    def _write_file_generator(self, write_fn, outfile):
+        for blob in write_fn():
             if outfile:
-                outfile.write(write_data)
-            if verbose:
-                print(write_data, end='')
-        if verbose:
-            print()
-    def _write_file(self, writer, verbose=False):
+                outfile.write(blob)
+
+    def _write_file(self, writer):
         write_mode, write_fn = writer()
         if not self.dry_run:
             with open(self.outfile, write_mode) as f:
-                self._write_file_generator(write_fn, f, verbose)
+                self._write_file_generator(write_fn, f)
         else:
-            self._write_file_generator(write_fn, None, verbose)
+            self._write_file_generator(write_fn, None)
 
-    def write_file(self, verbose=False):
+    def prepare_write_buffer(self):
+        write_address = 0
+        for inst in self.instructions:
+            if not inst._ENCODABLE:
+                continue
+
+            inst_bytes = ceil(cast(int,  inst.encoded).bit_length() / 8.0)
+            write_bytes = cast(int,inst.encoded).to_bytes(inst_bytes)
+            write_address = inst.address
+            for i, byte in enumerate(write_bytes):
+                # note we're writing "bytes" here as well, but addressing in 2-byte
+                # word space -> we need to double write_address here as well
+                self.file_buffer[write_address*2 + i] = byte
+
+    def write_file(self):
         self.assemble()
-        if verbose:
-            print('assembled data...\n')
+        self.prepare_write_buffer()
         if self.write_mode == WriteModes.HEX:
-            self._write_file(self.write_file_hex, verbose)
+            self._write_file(self.write_file_hex)
         elif self.write_mode == WriteModes.BIN:
-            self._write_file(self.write_file_bin, verbose)
+            self._write_file(self.write_file_bin)

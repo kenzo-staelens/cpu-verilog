@@ -1,6 +1,7 @@
 from compiler.objects import Inst
 from .jmp import JMP
 from compiler.directives.directives import Label
+from compiler.opcodes.alu import ADD
 
 # fully internal (not %macro definitions) but ones that don't
 # 1:1 map to an opcode in the ISA
@@ -27,7 +28,20 @@ class HLT(Macro):
             jmp
         ]
 
+class MOV(Macro):
+    _NUM_ARGS = 2
+    _MNEMONIC = 'mov'
+    def _parse_args(self, args):
+        # patch in constant zr as argb
+        self._tmp_args = args
+        
+    def build_multi_instruction(self):
+        res = ADD(self.line_nr, self.line_src)
+        # inputs dst, argb
+        res.parse_args([self._tmp_args[0], 'zr', self._tmp_args[1]])
+        return res.build_multi_instruction()
 
 mnemonics= {
-    HLT._MNEMONIC: HLT
+    HLT._MNEMONIC: HLT,
+    MOV._MNEMONIC: MOV
 }

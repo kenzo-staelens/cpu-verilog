@@ -6,7 +6,7 @@
     { "include": "#parameters" },
     { "include": "#comments" },
     { "include": "#keywords" },
-    { "include": "#numbers" },
+    { "include": "#constants" },
     { "include": "#registers" }
   ],
   "repository": {
@@ -21,20 +21,50 @@
     "keywords": {
       "patterns": [
         {
-          "name": "keyword.opcode.myasm",
-          "match": "(?i)^\\s*[a-z]+(?:\\.u|\\.s)?\\b"
+          "name":"keyword.opcode.alu.myasm",
+          "match": "(?i)^\\s*(nand|or|and|nor|add|sub|xor|lsl|lsr|cmp|mul)\\b"
+        },
+        {
+          "name":"keyword.opcode.io.myasm",
+          "match": "(?i)^\\s*(nop|clk|in|out|sts|dev)\\b"
+        },
+        {
+          "name":"keyword.opcode.mem.myasm",
+          "match": "(?i)^\\s*(str|ld|str\\.p|ld\\.p)\\b"
+        },
+        {
+          "match": "(?i)^\\s*(ssnop|jmp|jeq|jne|jlt(?:\\.s)?|jge(?:\\.s)?|jle(?:\\.s)?|jgt(?:\\.s)?)\\s+([a-z_][a-z0-9_]+|[0-9]+[bf])?\\b",
+          "captures": {
+            "1": {"name": "keyword.opcode.jmp.myasm"},
+            "2": {"name": "parameters.word.label"}
+          }
+        },
+        {
+          "name":"keyword.opcode.pseudo.myasm",
+          "match": "(?i)^\\s*(hlt|mov)\\b"
         },
         {
           "name": "keyword.directive.myasm",
-          "match": "\\.[a-zA-Z_][a-zA-Z0-9_]*\\b"
+          "match": "\\.(label|macro|endmacro|org|align)\\b"
         },
         {
-          "name": "keyword.macro.myasm",
-          "match": "%[a-zA-Z_][a-zA-Z0-9_]*\\b"
+          "name": "keyword.directive.section.myasm",
+          "match": "\\b(section)\\b(?:\\s+\\.(data|text|bss))?",
+          "captures": {
+            "1": { "name": "keyword.directive.myasm" },
+            "2": { "name": "parameters.section.label.myasm" }
+          }
+        },
+        {
+          "match": "(%)(\\w+)\\b",
+          "captures": {
+            "1": { "name": "keyword.macro.myasm" },
+            "2": { "name": "parameters.macro.label.myasm" }
+          }
         }
       ]
     },
-    "numbers": {
+    "constants": {
       "patterns": [
         {
           "name": "constant.numeric.hex.myasm",
@@ -51,6 +81,10 @@
         {
           "name": "constant.numeric.decimal.myasm",
           "match": "\\b[0-9]+\\b"
+        },
+        {
+          "name": "string.quoted.single",
+          "match": "'.'"
         }
       ]
     },
@@ -76,9 +110,26 @@
           }
         },
         {
-          "name": "parameters.word.jump",
-          "match": "(?i)(?<=j..(?:\\.U|\\.S)?\\b)\\s+(\\w+)"
+          "name": "meta.macro.block",
+          "begin": "(\\.macro)\\s+(\\w+)",
+          "beginCaptures": {
+            "1": { "name": "keyword.directive.myasm" },
+            "2": { "name": "parameters.macro.label.myasm" }
+          },
+          "end": "\\.endmacro",
+          "endCaptures": {
+            "0": { "name": "keyword.directive.myasm" }
+          },
+          "patterns": [
+            { "include": "#parameters" },
+            { "include": "#comments" },
+            { "include": "#keywords" },
+            { "include": "#constants" },
+            { "include": "#registers" }
+          ]
         }
+        
+  
       ]
     }
   }

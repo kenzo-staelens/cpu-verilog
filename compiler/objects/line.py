@@ -1,7 +1,7 @@
 # base class for directives and instructions
 
 class Line:
-    _MNEMONIC = '???'
+    _MNEMONIC: str = '???'
     _ENCODABLE = True
     _NUM_ARGS = 0
     def __init__(self, line_nr, line_src):

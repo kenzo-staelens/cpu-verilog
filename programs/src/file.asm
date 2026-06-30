@@ -7,5 +7,4 @@ add r5, r2, 2
 add r3, r1, r2
 hlt
 .label test
-jeq.u test
-; test
+jeq test

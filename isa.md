@@ -106,10 +106,10 @@ opcode == arg_a (bitwise) or inverted by opcode's high bit resulting in the belo
 |1|000|JMP|always jump|
 |0|001|JEQ|jump if equal|
 |1|001|JNE|jump if not equal|
-|0|010|JLT.U|jump less than (unsigned)|
-|1|010|JGE.U|jump greater than or equal (unsigned)|
-|0|011|JLE.U|jump less than or equal (unsigned)|
-|1|011|JGT.U|jump greater than (unsigned)|
+|0|010|JLT|jump less than (unsigned)|
+|1|010|JGE|jump greater than or equal (unsigned)|
+|0|011|JLE|jump less than or equal (unsigned)|
+|1|011|JGT|jump greater than (unsigned)|
 |0|100|JLT.S|jump less than (signed)|
 |1|100|JGE.S|jump greater than or equal (signed)|
 |0|101|JLE.S|jump less than or equal (signed)|
@@ -139,6 +139,18 @@ opcode gets split into 2 parts, high bits correspond to device select while low 
 
 * note: due to no proper reset .. yet, persistent storage is not actually persistent
 
+### Pseudo
+
+Pseudo instructions are a set of additional instructions that can be constructed
+using more basic (defined)
+
+<!-- markdownlint-disable MD033 -->
+|mnemonic|translates|
+|---|---|
+|MOV rd, rb|add rd, zr, rb|
+|HLT|.label halt_addr<br/>jmp halt_addr|
+<!-- markdownlint-enable MD033 -->
+
 ## Devices
 
 Device IDs are hardcoded into the fpga fabric, despite hardcoding and somewhat limited Opcode space in instructions it is still possible to select a large amount of devices. Current implementation supports up to 256 devices at 8 bits of device address but may support up to 16 bits (to update in controller).
@@ -146,3 +158,17 @@ Device IDs are hardcoded into the fpga fabric, despite hardcoding and somewhat l
 |ID|Name|
 |---|---|
 |0x0000|serial uart bridge (115200 baud)|
+
+### UART
+
+The uart bridge is an 8 bit (low byte of data) device at a baud rate of 115200.
+
+It has a single byte of read/write buffer (i.e. cannot "bank" 2 bytes for either operations)
+as the cpu is *much* faster than the UART channel 1 byte is considered acceptable.
+
+This device is physically connected to the micro-usb rx/tx channel
+
+|status bit|meaning|info|
+|---|---|---|
+|0|clear to send|high when a new value can be put on the channel|
+|1|recieved data waiting (to be read by cpu)|high when a value is available|

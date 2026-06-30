@@ -45,55 +45,68 @@
         "editor.semanticHighlighting.enabled": false
       },
       "editor.tokenColorCustomizations": {
-          "textMateRules": [
-            {
-              "scope": [
-                "keyword.opcode.myasm"
-              ],
-              "settings": {
-                "foreground": "#569CD6",
-                "fontStyle": "bold"
-              }
-            },
-            {
-              "scope": [
-                "keyword.directive.myasm",
-                "keyword.macro.myasm"
-              ],
-              "settings": {
-                "foreground": "#FF7B72",
-                "fontStyle": "bold"
-              }
-            },
-            {
-              "scope": "constant.numeric.myasm",
-              "settings": {
-                "foreground": "#B5CEA8"
-              }
-            },
-            {
-              "scope": [
-                "constant.register.myasm",
-                "constant.namedregister.myasm"
-              ],
-              "settings": {
-                "foreground": "#DCDCAA"
-              }
-            },
-            {
-              "scope": "comment.line.semicolon.myasm",
-              "settings": {
-                "foreground": "#6A9955"
-              }
-            },
-            {
-              "scope": "parameters.word",
-              "settings": {
-                "foreground": "#D2A8FF"
-              }
+        "textMateRules": [
+          {
+            "scope": [
+              "keyword.opcode.io.myasm",
+              "keyword.opcode.alu.myasm",
+              "keyword.opcode.mem.myasm",
+              "keyword.opcode.jmp.myasm",
+              "keyword.opcode.pseudo.myasm"
+            ],
+            "settings": {
+              "foreground": "#569CD6",
+              "fontStyle": "bold"
             }
-          ]
-        }
+          },
+          {
+            "scope": [
+              "keyword.directive.myasm",
+              "keyword.macro.myasm"
+            ],
+            "settings": {
+              "foreground": "#FF7B72",
+              "fontStyle": "bold"
+            }
+          },
+          {
+            "scope": [
+              "parameters.macro.label.myasm",
+              "parameters.section.label.myasm"
+            ],
+            "settings": {
+              "foreground": "#4EC9B0"
+            }
+          },
+          {
+            "scope": "constant.numeric.myasm",
+            "settings": {
+              "foreground": "#B5CEA8"
+            }
+          },
+          {
+            "scope": [
+              "constant.register.myasm",
+              "constant.namedregister.myasm"
+            ],
+            "settings": {
+              "foreground": "#DCDCAA"
+            }
+          },
+          {
+            "scope": "comment.line.semicolon.myasm",
+            "settings": {
+              "foreground": "#6A9955"
+            }
+          },
+          {
+            "scope": "parameters.word",
+            "settings": {
+              "foreground": "#D2A8FF"
+            }
+          }
+        ]
+      }
     }
   }
 }

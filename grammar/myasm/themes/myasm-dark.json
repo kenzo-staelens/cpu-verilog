@@ -22,6 +22,15 @@
       }
     },
     {
+      "scope": [
+        "parameters.macro.label.myasm",
+        "parameters.section.label.myasm"
+      ],
+      "settings": {
+        "foreground": "#4EC9B0"
+      }
+    },
+    {
       "scope": "constant.numeric",
       "settings": {
         "foreground": "#B5CEA8"

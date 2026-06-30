@@ -1,5 +1,16 @@
 {
   "comments": {
-    "lineComment": ";"
+    "lineComment": {
+      "comment": ";",
+    }
   },
+  "folding": {
+    "markers": {
+      "start": "^\\s*\\.(macro)\\b",
+      "end": "^\\s*\\.(endmacro)\\b",
+    }
+  },
+  "autoClosingPairs": [
+    { "open": ".macro", "close": ".endmacro" },
+  ],
 }

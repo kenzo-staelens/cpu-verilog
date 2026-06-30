@@ -6,16 +6,19 @@ from typing import cast
 import sys
 
 class Resolver:
-    def __init__(self, instructions, inst_width = 2):
+    def __init__(self, instructions, max_addresses, inst_width = 2):
         self.current_address = 0
         self.inst_width = inst_width
         self.labels = {}
         self.macros = {}
         self.instructions = instructions
         self.building_macro = None
+        self.max_addresses = max_addresses
     
     def resolve_directive(self, directive: Directive):
         self.current_address = directive.resolve(self.current_address)
+        if self.current_address > self.max_addresses:
+            raise RuntimeError(f'Failed to resolve all instructions within {self.max_addresses} addresses')
         if isinstance(directive, Label):
             if directive._labelname.isnumeric():
                 if directive._labelname not in self.labels:
@@ -33,11 +36,14 @@ class Resolver:
             inst._immediate = True
         if not inst._arg_b.resolved:
             inst._arg_b.resolve()
+        inst.address = self.current_address
         self.current_address += self.inst_width
 
     def resolve_label(self, line_nr, inst: Inst):
         arg_b = inst._arg_b
         arg_b._address = True
+        if isinstance(arg_b.value, int):
+            return  # hardcoded address
         if arg_b.unresolved_value not in self.labels and not re.match(
             r'\d+(b|f)',
             cast(str, arg_b.unresolved_value),
@@ -77,7 +83,6 @@ class Resolver:
         raise ResolverError(f'Failed to resolve label {arg_b.unresolved_value}\n{inst.line_src}')
         
     def register_macros(self):
-        # 
         for iln, inst in enumerate(self.instructions):
             if isinstance(inst, Macro):
                 if self.building_macro:
@@ -95,7 +100,7 @@ class Resolver:
                 self.building_macro = None
         if self.building_macro:
             raise SyntaxError(f'Unterminated macro {self.building_macro}\n{inst.line_src}')
-    
+
     def resolve_macros(self):
         has_unresolved = True
         resolved_instructions: 'list[Line]' = []
@@ -146,14 +151,14 @@ class Resolver:
         try:
             self.register_macros()
             self.resolve_macros()
-        except (ResolverError, SyntaxError) as e:
+        except (ResolverError, SyntaxError, RuntimeError) as e:
             print("error while resolving macro")
             print(str(e))
             sys.exit()
         try:
             self.register_addresses()
             self.resolve_addresses()
-        except (ResolverError, NotImplementedError, SyntaxError) as e:
+        except (ResolverError, NotImplementedError, SyntaxError, RuntimeError) as e:
             print("error while resolving addresses")
             print(str(e))
             sys.exit()

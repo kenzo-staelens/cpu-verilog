@@ -30,19 +30,19 @@ class JNE(BaseJMP):
     _OPCODE = 1 + INVERT
 
 class JLT_U(BaseJMP):
-    _MNEMONIC = 'jlt.u'
+    _MNEMONIC = 'jlt'
     _OPCODE = 2
 
 class JGE_U(BaseJMP):
-    _MNEMONIC = 'jge.u'
+    _MNEMONIC = 'jge'
     _OPCODE = 2 + INVERT
 
 class JLE_U(BaseJMP):
-    _MNEMONIC = 'jle.u'
+    _MNEMONIC = 'jle'
     _OPCODE = 3
 
 class JGT_U(BaseJMP):
-    _MNEMONIC = 'jgt.u'
+    _MNEMONIC = 'jgt'
     _OPCODE = 3 + INVERT
 
 class JLT_S(BaseJMP):
@@ -64,6 +64,7 @@ class JGT_S(BaseJMP):
 mnemonics = {
     SSNOP._MNEMONIC: SSNOP,
     JMP._MNEMONIC: JMP,
+    JEQ._MNEMONIC: JEQ,
     JNE._MNEMONIC: JNE,
     JLT_U._MNEMONIC: JLT_U,
     JGE_U._MNEMONIC: JGE_U,

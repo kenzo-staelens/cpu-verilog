@@ -1,7 +1,8 @@
 ; uart sts[0] = clear to send
 ; uart sts[1] = input waiting
 
-;Read from terminal then echo back the result
+; Read from terminal then echo back the result
+.org 0x02
 .macro writewait
 .label 1
 sts r1
