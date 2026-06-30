@@ -7,6 +7,9 @@ class WriteModes(IntEnum):
     BIN = 1
     HEX = 2
 
+WORD_BYTES = 2
+WORD_SIZE = WORD_BYTES*8  # note must be a multiple of 8
+
 class Assembler:
     def __init__(self, outfile, dry_run, instructions: list[Line], mem_size=65536, mode=WriteModes.HEX):
         self.outfile = outfile
@@ -14,10 +17,7 @@ class Assembler:
         self.write_mode = mode
         self.instructions = instructions
 
-        # note that a memory block is 16 bits (2 bytes)
-        # if we're working on 64K addresses and byte level per cell in this code
-        # we need to "double" mem size for proper file sizes
-        self.file_buffer = [0]*(mem_size*2)
+        self.file_buffer = [0]*mem_size
 
     def encode_instruction(self, inst: Inst):
         encoded = 0
@@ -41,29 +41,26 @@ class Assembler:
             elif isinstance(line, Inst):
                 self.encode_instruction(line)
 
-    def write_file_bin(self, chunk_bytes = 4):
+    # note for all writers -> writing hap
+    def write_file_bin(self, chunk_words = 4):
         def write_fn():
-            for i in range(0,len(self.file_buffer), chunk_bytes):
+            for i in range(0,len(self.file_buffer), chunk_words):
                 chunk = 0
-                for x in range(chunk_bytes):
-                    chunk += self.file_buffer[i+x] << 8*(chunk_bytes-1-x)
+                for x in range(chunk_words):
+                    chunk += self.file_buffer[i+x] << WORD_SIZE*(chunk_words-1-x)
         
-                yield chunk.to_bytes(chunk_bytes)
+                yield chunk.to_bytes(chunk_words)
         return 'wb', write_fn
 
-    def write_file_hex(self, read_bytes=2):
+    def write_file_hex(self, read_words=2):
         def write_fn():
-            parity = False
-            for i in range(0,len(self.file_buffer), read_bytes):
+            for i in range(0,len(self.file_buffer), read_words):
                 chunk = 0
-                for x in range(read_bytes):
-                    chunk += self.file_buffer[i+x] << 8*(read_bytes-1-x)
-                write_chunk = f'{chunk:0={2*read_bytes}x}'
-                if not parity:
-                    write_chunk += ' '
-                else:
-                    write_chunk += '\n'
-                parity = not parity
+                for x in range(read_words):
+                    chunk += self.file_buffer[i+x] << WORD_SIZE*(read_words-1-x)
+                write_chunk = f'{chunk:0={WORD_SIZE//4*read_words+read_words-1}_x}'
+                write_chunk = write_chunk.replace('_', ' ')
+                write_chunk += '\n'
                 yield write_chunk
         return 'w', write_fn
 
@@ -88,11 +85,18 @@ class Assembler:
 
             inst_bytes = ceil(cast(int,  inst.encoded).bit_length() / 8.0)
             write_bytes = cast(int,inst.encoded).to_bytes(inst_bytes)
+            # pad to meld size with zeroes
+            while len(write_bytes) % WORD_BYTES != 0:
+                write_bytes += b'\x00'
             write_address = inst.address
-            for i, byte in enumerate(write_bytes):
+            import math
+            for i in range(0, math.ceil(len(write_bytes)), WORD_BYTES):
+                word = 0
+                for x in range(WORD_BYTES):
+                    word += write_bytes[i+x] << (WORD_BYTES-x-1)*8
                 # note we're writing "bytes" here as well, but addressing in 2-byte
                 # word space -> we need to double write_address here as well
-                self.file_buffer[write_address*2 + i] = byte
+                self.file_buffer[write_address+i//WORD_BYTES] = word
 
     def write_file(self):
         self.assemble()

@@ -4,7 +4,7 @@
     and r1, r1, 0b10
     cmp r1, zr
     jne 1b
-    .endmacro
+.endmacro
 .macro readword
     ; words are 16 bits, 2 bytes, uart only returns 1 byte per request
     ; reads a word into r1, uses r2 as scrap register

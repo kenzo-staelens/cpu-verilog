@@ -24,15 +24,19 @@ $(SOURCES:%=%.build): %.build: $(OUTDIR)/%.build
 
 # === Default: build all sources ===
 .PHONY: all
+.PRECIOUS: $(BUILDDIR)/%.mem
+
 all: $(BUILD_MARKERS)
 
-# === Build a specific source (creates the real sentinel) ===
-$(OUTDIR)/%.build: $(SRCDIR)/%.asm | $(BUILDDIR) $(OUTDIR)
+# === Build a specific source and sentinel ===
+$(BUILDDIR)/%.mem: $(SRCDIR)/%.asm | $(BUILDDIR)
+# 	rm -rf $(OUTDIR)/*
 	python compile.py -f $< -o $(BUILDDIR)/$*.mem $(VERBOSE)
+
+$(OUTDIR)/%.build: $(BUILDDIR)/%.mem | $(OUTDIR)
 	python py_gen/gen_reg.py --build-dir $(BUILDDIR) --basename $* --outdir $(OUTDIR)
 	touch $@
-	# force remove teh sentinel file, we want to rebuild from scratch, always
-	rm $@
+
 
 # === Ensure directories exist ===
 $(BUILDDIR) $(OUTDIR):
