@@ -1,18 +1,17 @@
-from compiler.objects import Inst, Directive, UnresolvedMacro, Line
-from compiler.directives.directives import Label, Macro, Endmacro
+from compiler.objects import Inst, Directive
+from compiler.directives.directives import Label
 from compiler.errors import ResolverError
+from .base_processor import BaseProcessor
 import re
 from typing import cast
-import sys
 
-class Resolver:
-    def __init__(self, instructions, max_addresses, inst_width = 2):
+# may also generate a symbol table in the future
+class Resolver(BaseProcessor):
+    def __init__(self, instructions, max_addresses, inst_width = 2, error_msg = "error while resolving addresses"):
+        super().__init__(instructions, error_msg)
         self.current_address = 0
         self.inst_width = inst_width
         self.labels = {}
-        self.macros = {}
-        self.instructions = instructions
-        self.building_macro = None
         self.max_addresses = max_addresses
     
     def resolve_directive(self, directive: Directive):
@@ -82,55 +81,6 @@ class Resolver:
 
         raise ResolverError(f'Failed to resolve label {arg_b.unresolved_value}\n{inst.line_src}')
         
-    def register_macros(self):
-        for iln, inst in enumerate(self.instructions):
-            if isinstance(inst, Macro):
-                if self.building_macro:
-                    raise SyntaxError(f'Cannot define macro while inside another macro\n{inst.line_src}')
-                self.building_macro = inst.name
-                if inst.name in self.macros:
-                    raise ResolverError(f'macro {inst.name} already defined on address {inst.line_nr}\n{inst.line_src}')
-            if isinstance(inst, Endmacro):
-                i = iln-1
-                captured_instructions = []
-                while not isinstance(self.instructions[i], Macro):
-                    captured_instructions.insert(0, self.instructions[i])
-                    i-=1
-                self.macros[self.building_macro] = captured_instructions
-                self.building_macro = None
-        if self.building_macro:
-            raise SyntaxError(f'Unterminated macro {self.building_macro}\n{inst.line_src}')
-
-    def resolve_macros(self):
-        has_unresolved = True
-        resolved_instructions: 'list[Line]' = []
-        dropping_instructions = False
-        while has_unresolved:
-            has_unresolved = False
-            for inst in self.instructions:
-                if isinstance(inst, Endmacro):
-                    dropping_instructions = False
-                    continue
-                if isinstance(inst, Macro):
-                    dropping_instructions = True
-                if dropping_instructions:
-                    continue
-                if isinstance(inst, UnresolvedMacro):
-                    if inst.name not in self.macros:
-                        raise ResolverError(f'Macro {inst.name} not found\n{inst.line_src}')
-                    original = cast('list[Line]', self.macros[inst.name])
-                    new_lines = [x.copy() for x in original]
-                    resolved_instructions += new_lines
-                    has_unresolved = True
-                    continue
-                resolved_instructions.append(cast(Inst, inst))
-            self.instructions = resolved_instructions
-            resolved_instructions = []
-        # fix shifted indexing
-        for i, inst in enumerate(self.instructions):
-            inst.line_nr = i
-
-
     def register_addresses(self):
         # resolve what able, save the rest as forward references
         for inst in self.instructions:
@@ -147,19 +97,7 @@ class Resolver:
             if isinstance(inst, Inst) and inst._mode == 2:  # jmp
                 self.resolve_label(inst.line_nr, inst)
     
-    def resolve(self):
-        try:
-            self.register_macros()
-            self.resolve_macros()
-        except (ResolverError, SyntaxError, RuntimeError) as e:
-            print("error while resolving macro")
-            print(str(e))
-            sys.exit()
-        try:
-            self.register_addresses()
-            self.resolve_addresses()
-        except (ResolverError, NotImplementedError, SyntaxError, RuntimeError) as e:
-            print("error while resolving addresses")
-            print(str(e))
-            sys.exit()
+    def _process(self):
+        self.register_addresses()
+        self.resolve_addresses()
         return self.instructions

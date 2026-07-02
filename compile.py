@@ -1,6 +1,8 @@
 from argparse import ArgumentParser
-from compiler.processing import Parser, Resolver, Assembler
+from compiler.processing import Parser, MacroPreprocessor, Organizer, Resolver, Assembler
+from compiler.processing.base_processor import BaseProcessor
 from compiler.processing.assembler import WriteModes
+from typing import cast
 
 parser = ArgumentParser(__name__)
 parser.add_argument('--filename', '-f', required=True)
@@ -28,8 +30,26 @@ if __name__ == '__main__':
     instructions = file_parser.parse_file()
 
     render_state('parse', args, instructions)
+
+    for processor_cls in cast(list[type[BaseProcessor]],[
+        MacroPreprocessor,
+        Organizer,
+        # Resolver
+    ]):
+        processor = (processor_cls)(instructions)
+        instructions = processor.process()
+        render_state(str(processor_cls), args, instructions)
+    
+    # preprocessor = MacroPreprocessor(instructions)
+    # instructions = preprocessor.process()
+    # render_state('macros', args, instructions)
+
+    # organizer = Organizer(instructions)
+    # instructions = organizer.organize()    
+    # render_state('organized', args, instructions)
+
     resolver = Resolver(instructions, 2**16-1)
-    instructions = resolver.resolve()
+    instructions = resolver.process()
     render_state('resolve', args, instructions)
     
     # todo config loader

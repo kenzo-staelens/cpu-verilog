@@ -17,6 +17,7 @@
     in r2
     or r1, r1, r2
 .endmacro
+section .text
 jmp begin_boot
 
 section .text  ; not implemented

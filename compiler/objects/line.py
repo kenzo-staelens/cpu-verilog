@@ -1,3 +1,4 @@
+from typing import Self
 # base class for directives and instructions
 
 class Line:
@@ -24,5 +25,5 @@ class Line:
         # like call and ret
         return [self]
 
-    def copy(self):
+    def copy(self) -> Self:
         raise NotImplementedError(f'Copy not implemented on instance of {self._MNEMONIC}')
