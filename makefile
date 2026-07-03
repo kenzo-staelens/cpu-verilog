@@ -33,13 +33,17 @@ $(BUILDDIR)/%.mem: $(SRCDIR)/%.asm | $(BUILDDIR)
 # 	rm -rf $(OUTDIR)/*
 	python compile.py -f $< -o $(BUILDDIR)/$*.mem $(VERBOSE)
 
-$(OUTDIR)/%.build: $(BUILDDIR)/%.mem | $(OUTDIR)
-	python py_gen/gen_reg.py --build-dir $(BUILDDIR) --basename $* --outdir $(OUTDIR)
+$(OUTDIR)/%.build: $(BUILDDIR)/%.mem | $(OUTDIR) $(OUTDIR)/%/
+# 	mkdir $(OUTDIR)
+	python py_gen/gen_reg.py --build-dir $(BUILDDIR) --basename $* --outdir $(OUTDIR)/$*
 	touch $@
 
 
 # === Ensure directories exist ===
 $(BUILDDIR) $(OUTDIR):
+	mkdir -p $@
+
+$(OUTDIR)/%/:
 	mkdir -p $@
 
 # === Clean up ===

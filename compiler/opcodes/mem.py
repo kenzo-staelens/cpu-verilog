@@ -2,6 +2,7 @@ from compiler.objects import Inst, Operand
 
 class BaseMEM(Inst):
     _NUM_ARGS = 2
+    _OP = 0
     def __init__(self, *args):
         super().__init__(*args)
         self._mode = 3
@@ -10,27 +11,26 @@ class BaseMEM(Inst):
         self._dst = Operand.parse_operand(self, args[0], allow_register=True)
         self._arg_b = Operand.parse_operand(self, args[1], allow_literal=True, allow_register=True)
 
-DEV_MEM = 0 << 2
-DEV_PERSIST = 1 << 2
+class MEMLD(BaseMEM):
+    _OP = 0
+    def _parse_args(self, args):
+        self._dst = Operand.parse_operand(self, args[0], allow_register=True)
+        self._arg_b = Operand.parse_operand(self, args[1], allow_literal=True, allow_register=True)
+    
+class MEMSTR(BaseMEM):
+    _OP = 1
+    def _parse_args(self, args):
+        self._arg_a = Operand.parse_operand(self, args[0], allow_register=True)
+        self._arg_b = Operand.parse_operand(self, args[1], allow_literal=True, allow_register=True)
+    
+def construct_mem_opcode(name, mnemonic, base: type[BaseMEM], dev):
+    opcode = (dev << 2) + base._OP
+    return type(name, (base,), {'_MNEMONIC': mnemonic, '_OPCODE': opcode})
 
-OP_LD = 0
-OP_STR = 1
-
-class LD16(BaseMEM):
-    _MNEMONIC = 'ld'
-    _OPCODE = DEV_MEM + OP_LD
-
-class STR16(BaseMEM):
-    _MNEMONIC = 'str'
-    _OPCODE = DEV_MEM + OP_STR
-
-class LD16P(BaseMEM):
-    _MNEMONIC = 'ld.p'
-    _OPCODE = DEV_PERSIST + OP_LD
-
-class STR16P(BaseMEM):
-    _MNEMONIC = 'str.p'
-    _OPCODE = DEV_PERSIST + OP_STR
+LD16: type[BaseMEM] = construct_mem_opcode('LD16', 'ld', MEMLD, 0)
+STR16: type[BaseMEM] = construct_mem_opcode('STR16', 'str', MEMSTR, 0)
+LD16P: type[BaseMEM] = construct_mem_opcode('LD16P', 'ld.p', MEMLD, 1)
+STR16P: type[BaseMEM] = construct_mem_opcode('STR16P', 'str.p', MEMSTR, 1)
 
 mnemonics = {
     LD16._MNEMONIC: LD16,

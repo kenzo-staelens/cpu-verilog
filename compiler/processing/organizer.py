@@ -50,7 +50,6 @@ class Organizer(BaseProcessor):
                                        f'valid address is {self.first_valid_address}'
                     )
                 instruction_index, phantom = instruction_info
-                print(phantom)
                 i = instruction_index
                 # scrap until next item is an instruction
                 while (i < len(self.instructions)-1) and isinstance(self.instructions[i+1], (Org, Section)):
