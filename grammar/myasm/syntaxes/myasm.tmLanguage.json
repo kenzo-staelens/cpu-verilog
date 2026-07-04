@@ -22,7 +22,7 @@
       "patterns": [
         {
           "name":"keyword.opcode.alu.myasm",
-          "match": "(?i)^\\s*(nand|or|and|nor|add|sub|xor|lsl|lsr|cmp|mul)\\b"
+          "match": "(?i)^\\s*(ssnop|nand|or|and|nor|add|sub|xor|lsl|lsr|cmp|mul)\\b"
         },
         {
           "name":"keyword.opcode.io.myasm",
@@ -33,7 +33,7 @@
           "match": "(?i)^\\s*(str|ld|str\\.p|ld\\.p)\\b"
         },
         {
-          "match": "(?i)^\\s*(ssnop|jmp|jeq|jne|jlt(?:\\.s)?|jge(?:\\.s)?|jle(?:\\.s)?|jgt(?:\\.s)?)\\s+([a-z_][a-z0-9_]+|[0-9]+[bf])?\\b",
+          "match": "(?i)^\\s*(jmp|jeq|jne|jlt(?:\\.s)?|jge(?:\\.s)?|jle(?:\\.s)?|jgt(?:\\.s)?)\\s+([a-z_][a-z0-9_]*|[0-9]+[bf])?\\b",
           "captures": {
             "1": {"name": "keyword.opcode.jmp.myasm"},
             "2": {"name": "parameters.word.label"}
@@ -92,7 +92,7 @@
       "patterns": [
         {
           "name": "constant.namedregister.myasm",
-          "match": "\\bzr\\b"
+          "match": "\\b(zr|flags|sp)\\b"
         },
         {
           "name": "constant.register.myasm",

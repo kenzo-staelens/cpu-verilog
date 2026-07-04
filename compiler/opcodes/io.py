@@ -11,6 +11,7 @@ class IOBase(Inst):
         if self._DIRECTION == 'in':
             self._dst = Operand.parse_operand(self,args[0], allow_register=True)
         if self._DIRECTION == 'out':
+            # self._arg_b = Operand.parse_operand(self, args[0], allow_register=True, allow_literal=True)
             self._arg_b = Operand.parse_operand(self, args[0], allow_register=True, allow_literal=True)
 
 class NOP(IOBase):

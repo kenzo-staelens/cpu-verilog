@@ -18,7 +18,10 @@ module UART #(
 
     // "status" in
     input event_read,
-    input event_write
+    input event_write,
+
+    output [15:0] uart_debug_tx,
+    output [15:0] uart_debug_rx
 );
 
 // dirty internal 1 entry fifo; drop when too many
@@ -44,7 +47,6 @@ always @(posedge clk) begin
     if (send_waiting && !clear_to_send) begin
         send_waiting <= 0;
     end
-    // active events from cpu
     if (cs) begin
         if (event_read) unhandled_wait <= 0;
     
@@ -53,6 +55,7 @@ always @(posedge clk) begin
             send_waiting <= 1;
         end
     end
+    // active events from cpu
 end
 
 uart_tx #(
@@ -63,8 +66,10 @@ uart_tx #(
     .data(sending_data),
     .tx_start(send_waiting),  // status from cpu
     .tx_out(serial_out),
-    .tx_done(clear_to_send)  // status to cpu
+    .tx_done(clear_to_send),  // status to cpu
+    .uart_debug(uart_debug_tx)
 );
+
 
 uart_rx #(
     .BAUD_RATE(BAUD_RATE),
@@ -73,8 +78,8 @@ uart_rx #(
     .clk(clk),
     .rx_in(serial_in),
     .data(data_rcv),
-    .data_valid(data_valid) // note: set to 0 on next clock
+    .data_valid(data_valid), // note: set to 0 on next clock
+    .uart_debug(uart_debug_rx)
 );
-
 
 endmodule

@@ -2,3 +2,5 @@ builtin_components/
 **/__pycache__/
 out/
 build/
+.Xil/
+*.pb

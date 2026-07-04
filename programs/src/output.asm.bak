@@ -5,18 +5,19 @@
 .macro waitloop
 .label 1
 sts r1
-and r2, r1, 0b01
-cmp r2, zr
-jeq 1b ; cts == 0 -> jump back to wait
+and r1, r1, 0x01
+cmp r1, zr
+jeq 1b
 .endmacro
 section .text
-mov r3, 'A'
-; mov r4, 'B'
+mov r2, 0b00110011 ;'A'
+mov r3, 'B'
 %waitloop
-out r3
+out r2
 %waitloop
-add r5, r5, 1
-out r4
-ssnop
-ssnop
+out r2
+%waitloop
+out r2
+; %waitloop
+; out r3
 hlt

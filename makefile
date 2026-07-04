@@ -30,7 +30,6 @@ all: $(BUILD_MARKERS)
 
 # === Build a specific source and sentinel ===
 $(BUILDDIR)/%.mem: $(SRCDIR)/%.asm | $(BUILDDIR)
-# 	rm -rf $(OUTDIR)/*
 	python compile.py -f $< -o $(BUILDDIR)/$*.mem $(VERBOSE)
 
 $(OUTDIR)/%.build: $(BUILDDIR)/%.mem | $(OUTDIR) $(OUTDIR)/%/

@@ -94,6 +94,7 @@ module CPU #(
         //basic
         .clk(clk),
         .rst(rst),
+        .ready(ready),
     
         //input fetch
         .inst(inst_a),
@@ -135,6 +136,7 @@ module CPU #(
         //basic
         .clk(clk),
         .rst(rst),
+        .ready(ready),
     
         //input fetch
         .inst(inst_b),
@@ -188,14 +190,15 @@ module CPU #(
         .out(pipelined_clock)
     );
     
-    wire jmp_flag=(opcode_1[2:0] & arg_a_1[2:0])^(opcode_1[3])!=0; // any is same or invert
+    wire jmp_flag = (((opcode_1[2] & arg_a_1[2])|(opcode_1[1] & arg_a_1[1])|(opcode_1[0] & arg_a_1[0]))^opcode_1[3]);
+    // wire jmp_flag=((opcode_1[2:0] & arg_a_1[2:0])^(&{opcode_1[3], opcode_1[3], opcode_1[3]}))!=0; // any is same or invert
     wire ctrl_en_jmp;
     // ctrl_en_io is a module output
     wire ctrl_en_store;
 
     // reserved signal 1
     wire [WORD_WIDTH-1:0] intermediate_incoming_io;
-    assign intermediate_incoming_io = (ctrl_en_io && opcode==1) ? pipelined_clock : incoming_io;
+    assign intermediate_incoming_io = (ctrl_en_io_internal && opcode==1) ? pipelined_clock : incoming_io;
 
     ControlExec #(.WORD_WIDTH(WORD_WIDTH)) control_signals (
         .mode(mode_1),
@@ -205,12 +208,14 @@ module CPU #(
         .data_io(intermediate_incoming_io),
         .data_bus(data_bus),
         .en_jmp(ctrl_en_jmp),
-        .en_io(ctrl_en_io),
+        .en_io(ctrl_en_io_internal),
         .en_store(ctrl_en_store),
 
         // output en_store to make verilog happy
         .storage_out(storage_out)
     );
+
+    assign ctrl_en_io = ready ? ctrl_en_io_internal : 0;
 
     RegFile #(
         .REGISTER_BITS(REGISTER_BITS),

@@ -2,8 +2,8 @@ module Top#(
     REGISTER_BITS = 4,
     WORD_WIDTH = 16
 ) (
-    input clk,
-    input [REGISTER_BITS-1:0] peek_address,
+    input real_clk,
+    input [5:0] peek_address,
     output [WORD_WIDTH-1:0] peek_out,
 
     input uart_serial_in,
@@ -11,8 +11,25 @@ module Top#(
 );
     // bootloader, stabilizing signals etc
     wire rst;
+    wire [15:0] uart_debug_rx;
+    wire [15:0] uart_debug_tx;
+    wire [15:0] cpu_peek;
+    assign peek_out = cpu_peek;
+    // assign peek_out = peek_address[5:4] == 0 ? cpu_peek :
+    //                   peek_address[5:4] == 1 ? uart_debug_rx :
+    //                   peek_address[5:4] == 2 ? uart_debug_tx :
+    //                   255;
+    
+    reg [1:0] clk_reg;
+    initial begin
+        clk_reg = 0;
+    end
+    always @(posedge real_clk) begin
+        clk_reg = clk_reg + 1;
+    end
+    assign clk = clk_reg[1];
+    
     BootModule boot(.clk(clk), .rst_wire(rst));
-
 
     wire [3:0] opcode;
     wire [WORD_WIDTH-1:0] incoming_io;
@@ -34,8 +51,8 @@ module Top#(
         .clk(clk),
         // additionally used as ready signal from external sources
         // this module runs when reset is low
-        .peek_address(peek_address),
-        .peek_out(peek_out),
+        .peek_address(peek_address[3:0]), // REGISTER_BITS
+        .peek_out(cpu_peek),
 
         // export io
         // reserved signals
@@ -67,9 +84,11 @@ module Top#(
     wire [7:0] uart_data_rcv;
     // hooked up to device ID 0
     UART #(
-        .CLK_FREQ(50_000_000)
+        .CLK_FREQ(100_000_000), //hardcoded this is FPGA clock speed
+        // .BAUD_RATE(9600)
+        .BAUD_RATE(115200)
     ) uart_io (
-        .clk(clk),
+        .clk(real_clk),
         .data_send(outgoing_io_trunk),
         .cs(cs_uart),
         .data_rcv(uart_data_rcv),
@@ -78,7 +97,9 @@ module Top#(
         .data_waiting(uart_status[1]),
         .clear_to_send(uart_status[0]),
         .event_read(read_event),
-        .event_write(write_event)
+        .event_write(write_event),
+        .uart_debug_rx(uart_debug_rx),
+        .uart_debug_tx(uart_debug_tx)
     );
 endmodule
 

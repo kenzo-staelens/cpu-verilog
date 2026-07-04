@@ -1,3 +1,4 @@
+section .text
 add r1, zr, 0x3641
 add r2, zr, 0x3652
 str r1, 0x10

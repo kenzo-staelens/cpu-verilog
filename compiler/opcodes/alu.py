@@ -30,28 +30,28 @@ class NOR(BaseAlu):
 
 class ADD(BaseAlu):
     _MNEMONIC = 'add'
-    _OPCODE = 5
+    _OPCODE = 4
 
 class SUB(BaseAlu):
     _MNEMONIC = 'sub'
-    _OPCODE = 6
+    _OPCODE = 5
 
 class XOR(BaseAlu):
     _MNEMONIC = 'xor'
-    _OPCODE = 7
+    _OPCODE = 6
 
 class LSL(BaseAlu):
     _MNEMONIC = 'lsl'
-    _OPCODE = 8
+    _OPCODE = 7
 
 class LSR(BaseAlu):
     _MNEMONIC = 'lsr'
-    _OPCODE = 9
+    _OPCODE = 8
 
 class CMP(BaseAlu):
     _NUM_ARGS = 2
     _MNEMONIC = 'cmp'
-    _OPCODE = 10
+    _OPCODE = 9
 
     def _parse_args(self, args):
         self._dst = Operand.parse_operand(self, 'flags', allow_register=True)
@@ -60,7 +60,7 @@ class CMP(BaseAlu):
 
 class MUL(BaseAlu):
     _MNEMONIC = 'mul'
-    _OPCODE = 11
+    _OPCODE = 10
 
 mnemonics = {
     NAND._MNEMONIC: NAND,

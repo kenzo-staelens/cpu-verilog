@@ -7,18 +7,19 @@
 sts r1
 and r1, r1, 0b01
 cmp r1, zr
-jne 1b
+jeq 1b
 .endmacro
 .macro readwait
-.label 1
+.label 2
 sts r1
 and r1, r1, 0b10
 cmp r1, zr
-jne 1b
+jeq 2b
 .endmacro
+section .text
 .label begin
 %readwait
-in r1
+in r3
 %writewait
-out r1
+out r3
 jmp begin

@@ -8,7 +8,8 @@ module Pipeline # (
     input clk,
     input rst,
     input [INSTRUCTION_BITS-1:0] inst,
-    
+    input ready,  // if not -> stall the pipeline (output only)
+
     // prefetch data "output"
     output [REGISTER_BITS-1:0] reg_addr_a,
     output [REGISTER_BITS-1:0] reg_addr_b,
@@ -41,7 +42,7 @@ module Pipeline # (
     wire _unused_ok = &{intermediate[INSTRUCTION_BITS-1]}; //highest bit unused
 
     assign {mode, immediate_b, opcode, dst, reg_addr_a, immediate_value} = intermediate[INSTRUCTION_BITS-2:0];  //std -1 and extra -1 for unused highest bit
-    assign reg_addr_b = inst[8+REGISTER_BITS-1:8];
+    assign reg_addr_b = intermediate[8+REGISTER_BITS-1:8];
 
     // switched data b or immediate
     wire [WORD_WIDTH-1:0] data_b_int = (immediate_b == 1'b1) ? immediate_value : reg_resp_b;
@@ -50,11 +51,17 @@ module Pipeline # (
     DelayLine # (.WORD_WIDTH(INSTRUCTION_BITS)) fetch_delay (.clk(clk), .rst(rst), .in(inst), .out(intermediate));
     
     // decode delay lines
-    DelayLine # (.WORD_WIDTH(2)) delay_mode (.clk(clk), .rst(rst), .in(mode), .out(mode_exec));
-    DelayLine # (.WORD_WIDTH(OPCODE_BITS)) delay_opcode (.clk(clk), .rst(rst), .in(opcode), .out(opcode_exec));
-    DelayLine # (.WORD_WIDTH(REGISTER_BITS)) delay_dst (.clk(clk), .rst(rst), .in(dst), .out(dst_exec));
-    DelayLine # (.WORD_WIDTH(WORD_WIDTH)) delay_arg_a (.clk(clk), .rst(rst), .in(reg_resp_a), .out(arg_a_exec));
-    DelayLine # (.WORD_WIDTH(WORD_WIDTH)) delay_arg_b (.clk(clk), .rst(rst), .in(data_b_int), .out(arg_b_exec));
+    DelayLine # (.WORD_WIDTH(2)) delay_mode (.clk(clk), .rst(rst), .in(mode), .out(mode_exec_raw));
+    DelayLine # (.WORD_WIDTH(OPCODE_BITS)) delay_opcode (.clk(clk), .rst(rst), .in(opcode), .out(opcode_exec_raw));
+    DelayLine # (.WORD_WIDTH(REGISTER_BITS)) delay_dst (.clk(clk), .rst(rst), .in(dst), .out(dst_exec_raw));
+    DelayLine # (.WORD_WIDTH(WORD_WIDTH)) delay_arg_a (.clk(clk), .rst(rst), .in(reg_resp_a), .out(arg_a_exec_raw));
+    DelayLine # (.WORD_WIDTH(WORD_WIDTH)) delay_arg_b (.clk(clk), .rst(rst), .in(data_b_int), .out(arg_b_exec_raw));
+
+    assign mode_exec = ready ? mode_exec_raw : 0;    
+    assign opcode_exec = ready ? opcode_exec_raw : 0;
+    assign dst_exec = ready ? dst_exec_raw : 0;
+    assign arg_a_exec = ready ? arg_a_exec_raw : 0;
+    assign arg_b_exec = ready ? arg_b_exec_raw : 0;    
 
     //verification macro
     `ifdef __sanity__

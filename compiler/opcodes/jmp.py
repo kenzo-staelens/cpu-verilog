@@ -7,7 +7,7 @@ class BaseJMP(Inst):
         self._mode = 2
         
     def _parse_args(self, args):
-        self.arg_a = Operand.parse_operand(self, 'flags', allow_register=True)
+        self._arg_a = Operand.parse_operand(self, 'flags', allow_register=True)
         self._arg_b = Operand.parse_operand(self, args[0],allow_literal=True, allow_word=True)
         
 
@@ -16,6 +16,10 @@ INVERT = 8
 class SSNOP(BaseJMP):
     _MNEMONIC = 'ssnop'
     _OPCODE = 0
+    _NUM_ARGS = 0
+
+    def _parse_args(self, args):
+        pass
 
 class JMP(BaseJMP):
     _MNEMONIC = 'jmp'

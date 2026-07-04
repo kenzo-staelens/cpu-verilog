@@ -1,3 +1,5 @@
+`define FULL_PATH(dir, file) `"``dir``file`" 
+
 module ProgMemBRAM # (
     parameter WORD_WIDTH = 16,
     parameter NUM_BANKS = 4,
@@ -57,10 +59,13 @@ module ProgMemBRAM # (
                 end
                 read_latch = 0;
                 data_bank = 0;
-                if (i == 0) $readmemh("/home/kenzo/Desktop/cpu-verilog/reg_data/ram_0.mem", ram);
-                if (i == 1) $readmemh("/home/kenzo/Desktop/cpu-verilog/reg_data/ram_1.mem", ram);
-                if (i == 2) $readmemh("/home/kenzo/Desktop/cpu-verilog/reg_data/ram_2.mem", ram);
-                if (i == 3) $readmemh("/home/kenzo/Desktop/cpu-verilog/reg_data/ram_3.mem", ram);
+                `ifdef ProgDir
+                    if (i == 0) $readmemh(`FULL_PATH(`ProgDir, ram_0.mem), ram);
+                    if (i == 1) $readmemh(`FULL_PATH(`ProgDir, ram_1.mem), ram);
+                    if (i == 2) $readmemh(`FULL_PATH(`ProgDir, ram_2.mem), ram);
+                    if (i == 3) $readmemh(`FULL_PATH(`ProgDir, ram_3.mem), ram);
+                `endif
+                
                 inst_bank = ram[0];
             end
 
