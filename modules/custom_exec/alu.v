@@ -12,7 +12,10 @@ module ALU #(
 
     // optional: future multiply optimization for warnings
     (* mult_style = "pipe_none", use_dsp = "yes" *) wire [WORD_WIDTH-1:0] multiply_wire;
-    assign multiply_wire = arg_a*arg_b;
+    assign multiply_wire = arg_a[7:0]*arg_b[7:0];
+    // there's no reason to compute 16bx16b = 32b
+    // if we're only reading the bottom 16 bits
+    // better to just constrain to 8bx8b = 16b and save timing
 
     // CMP flags = 3 bits
     assign cmp[WORD_WIDTH-1:3]=0;

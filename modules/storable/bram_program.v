@@ -22,10 +22,10 @@ module ProgMemBRAM # (
     reg [1:0] address_latch;
 
 
-    assign data_out = (read_enable && gen_banks[0].read_latch) ? gen_banks[0].data_bank :
-                      (read_enable && gen_banks[1].read_latch) ? gen_banks[1].data_bank :
-                      (read_enable && gen_banks[2].read_latch) ? gen_banks[2].data_bank :
-                      (read_enable && gen_banks[3].read_latch) ? gen_banks[3].data_bank : 0;
+    assign data_out = (gen_banks[0].read_latch) ? gen_banks[0].data_bank :
+                      (gen_banks[1].read_latch) ? gen_banks[1].data_bank :
+                      (gen_banks[2].read_latch) ? gen_banks[2].data_bank :
+                      (gen_banks[3].read_latch) ? gen_banks[3].data_bank : 0;
 
     always @(posedge clk) begin
         if (!stall) address_latch <= inst_addr;
@@ -65,7 +65,12 @@ module ProgMemBRAM # (
                     if (i == 2) $readmemh(`FULL_PATH(`ProgDir, ram_2.mem), ram);
                     if (i == 3) $readmemh(`FULL_PATH(`ProgDir, ram_3.mem), ram);
                 `endif
-                
+                if (i == 0) $readmemh("/home/kenzo/Desktop/cpu-verilog/programs/out/echo/ram_0.mem", ram);
+                if (i == 1) $readmemh("/home/kenzo/Desktop/cpu-verilog/programs/out/echo/ram_1.mem", ram);
+                if (i == 2) $readmemh("/home/kenzo/Desktop/cpu-verilog/programs/out/echo/ram_2.mem", ram);
+                if (i == 3) $readmemh("/home/kenzo/Desktop/cpu-verilog/programs/out/echo/ram_3.mem", ram);
+
+
                 inst_bank = ram[0];
             end
 

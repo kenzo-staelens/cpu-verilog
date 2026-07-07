@@ -17,6 +17,8 @@ cmp r1, zr
 jeq 2b
 .endmacro
 section .text
+jmp begin
+ld r4, 0x1
 .label begin
 %readwait
 in r3

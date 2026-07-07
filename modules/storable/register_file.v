@@ -38,19 +38,10 @@ module RegFile #(
     wire [REGISTER_BITS-1:0] address_3 = output_address_bus[2*REGISTER_BITS-1:1*REGISTER_BITS];
     wire [REGISTER_BITS-1:0] address_4 = output_address_bus[1*REGISTER_BITS-1:0              ];
 
-    // since address b gets written last it's has priority for the reads
-    wire [WORD_WIDTH-1:0] data_1 = (write_enable_2 && write_address_2 != 0 && write_address_2 == address_1) ? write_data_2 :
-                                   (write_enable_1 && write_address_1 != 0 && write_address_1 == address_1) ? write_data_1 :
-                                                                                                            storage[address_1];
-    wire [WORD_WIDTH-1:0] data_2 = (write_enable_2 && write_address_2 != 0 && write_address_2 == address_2) ? write_data_2 :
-                                   (write_enable_1 && write_address_1 != 0 && write_address_1 == address_2) ? write_data_1 :
-                                                                                                            storage[address_2];
-    wire [WORD_WIDTH-1:0] data_3 = (write_enable_2 && write_address_2 != 0 && write_address_2 == address_3) ? write_data_2 :
-                                   (write_enable_1 && write_address_1 != 0 && write_address_1 == address_3) ? write_data_1 :
-                                                                                                            storage[address_3];
-    wire [WORD_WIDTH-1:0] data_4 = (write_enable_2 && write_address_2 != 0 && write_address_2 == address_4) ? write_data_2 :
-                                   (write_enable_1 && write_address_1 != 0 && write_address_1 == address_4) ? write_data_1 :
-                                                                                                            storage[address_4];
+    wire [WORD_WIDTH-1:0] data_1 = storage[address_1];
+    wire [WORD_WIDTH-1:0] data_2 = storage[address_2];
+    wire [WORD_WIDTH-1:0] data_3 = storage[address_3];
+    wire [WORD_WIDTH-1:0] data_4 = storage[address_4];
 
     assign output_bus = {data_1, data_2, data_3, data_4};
     assign peek_out = storage[peek_address];

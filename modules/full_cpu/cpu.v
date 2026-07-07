@@ -52,6 +52,7 @@ module CPU #(
         .jmp_addr(data_bus),
         .pc_read(program_address),
         .ready(ready),
+        .ready_early(ready_early),
         .inst_a(inst_a),
         .inst_b(inst_b)
     );
@@ -200,6 +201,7 @@ module CPU #(
     wire [WORD_WIDTH-1:0] intermediate_incoming_io;
     assign intermediate_incoming_io = (ctrl_en_io_internal && opcode==1) ? pipelined_clock : incoming_io;
 
+    wire [WORD_WIDTH-1:0] storage_out_bus;
     ControlExec #(.WORD_WIDTH(WORD_WIDTH)) control_signals (
         .mode(mode_1),
         .jmp_addr(arg_b_1),
@@ -212,7 +214,7 @@ module CPU #(
         .en_store(ctrl_en_store),
 
         // output en_store to make verilog happy
-        .storage_out(storage_out)
+        .storage_out(storage_out_bus)
     );
 
     assign ctrl_en_io = ready ? ctrl_en_io_internal : 0;
@@ -245,16 +247,15 @@ module CPU #(
     // device 3 = N/A
     // correspond to select by high bits of opcode
     // bit 3 of opcode unused
-    wire [1:0] str_select = opcode_1[3:2]; 
-
+    
     // program memory
     // NOTE: store address = arg b (imm. or reg)
     // as it's more efficient than using a register to address ram?
     // NOTE: being read directly from pipeline unit as it's always only pipeline 1
     // if pipeline changes -> todo: clean this up
-    wire ctrl_en_store_2 = pipeline_1.mode == 2'b11;
-    wire progmem_re = (pipeline_1.opcode[3:2] == 2'b00) && ctrl_en_store_2 && (pipeline_1.opcode[1:0] == 2'b00);
-    wire progmem_we = (pipeline_1.opcode[3:2] == 2'b00) && ctrl_en_store_2 && (pipeline_1.opcode[1:0] == 2'b01);
+    wire ctrl_en_store_2 = ready_early && pipeline_1.mode == 2'b11;
+    wire progmem_re = (pipeline_1.opcode == 4'b0000) && ctrl_en_store_2;
+    wire progmem_we = (pipeline_1.opcode == 4'b0001) && ctrl_en_store_2;
 
     ProgMemBRAM #(
         .WORD_WIDTH(WORD_WIDTH),
@@ -279,8 +280,8 @@ module CPU #(
     // reg_resp_a_1
     // reg_resp_b_1
 
-    wire persistent_re = (pipeline_1.opcode == 2'b01) && ctrl_en_store_2 && (opcode_1[1:0] == 2'b00);
-    wire persistent_we = (pipeline_1.opcode == 2'b01) && ctrl_en_store_2 && (opcode_1[1:0] == 2'b01);
+    wire persistent_re = (pipeline_1.opcode == 4'b0100) && ctrl_en_store_2;
+    wire persistent_we = (pipeline_1.opcode == 4'b0101) && ctrl_en_store_2;
 
     PersistentBRAM #(
         .WORD_WIDTH(WORD_WIDTH),
@@ -301,7 +302,7 @@ module CPU #(
 
     wire [WORD_WIDTH-1:0] data_bus_persist;
     wire [WORD_WIDTH-1:0] data_bus_progmem;
-    wire [WORD_WIDTH-1:0] storage_out = (progmem_re) ? data_bus_progmem :
-                                        (persistent_re) ? data_bus_persist :
-                                        {WORD_WIDTH{1'b0}};
+    assign storage_out_bus = (opcode_1[3:2] == 0) ? data_bus_progmem :
+                             (opcode_1[3:2] == 1) ? data_bus_persist :
+                             0;
 endmodule

@@ -11,6 +11,7 @@ module Clock_wrapper #(
 
     output [WORD_WIDTH-1:0] pc_read,
     output ready,
+    output ready_early,
     output [INSTRUCTION_BITS-1:0] inst_a,
     output [INSTRUCTION_BITS-1:0] inst_b
 );
@@ -23,10 +24,11 @@ module Clock_wrapper #(
     // little awkward to paremeter for now? -> hazard is fairly implementation specific
     `hazard_type hazard_module (.inst_a(inst64[2*INSTRUCTION_BITS-1:INSTRUCTION_BITS]), .inst_b(inst64[INSTRUCTION_BITS-1:0]), .exec_b(hazard_out));
     Clock # (.WORD_WIDTH(WORD_WIDTH), .INST_SIZE(INST_SIZE)) program_counter (.clk(clk), .rst(rst), .exec_a(1'b1), .exec_b(hazard_out),.jmp(do_jmp), .jmp_addr(jmp_addr), .out(pc_read));
-    Clock_busy busy_module(.clk(clk), .rst(rst), .in(do_jmp), .out(stall));
+    Clock_busy busy_module(.clk(clk), .rst(rst), .in(do_jmp), .out(stall), .out_early(stall_early));
 
 
     assign ready = !stall;
+    assign ready_early = !stall_early;
     assign inst_a = inst64[2*INSTRUCTION_BITS-1:INSTRUCTION_BITS];
     assign do_jmp = jmp & !stall;
     assign inst_b = (hazard_out == 1'b1) ? inst64[INSTRUCTION_BITS-1:0] : {INSTRUCTION_BITS{1'b0}};
