@@ -11,11 +11,15 @@ class Clock:
 
     def compute_hazard(self, inst_a_dec, inst_b_dec):
         haz = False
-        if inst_a_dec[0] == 2:
+        if inst_a_dec.mode == 2:
             haz=True
-        if inst_b_dec[0] != 1:
+        if inst_b_dec.mode != 1:
             haz = True
-        if inst_b_dec[-2] == inst_a_dec[3] and inst_b_dec[2] != 1:
+        if inst_b_dec.arg_a == inst_a_dec.arg_a and inst_b_dec.immediate != 1:
+            haz=True
+        if inst_b_dec.arg_b == inst_a_dec.arg_a and inst_b_dec.immediate != 1:
+            haz = True
+        if inst_b_dec.arg_b == inst_a_dec.arg_b and inst_b_dec.immediate != 1 and inst_a_dec.immediate != 1:
             haz = True
         
         if haz:

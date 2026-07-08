@@ -8,7 +8,10 @@ class Ram:
     
 
     def load_file(self, filename):
-        pass
+        with open(filename, 'rb') as f:
+            to_read = int.from_bytes(f.read(2))
+            for i in range(to_read):
+                self.mem[i] = int.from_bytes(f.read(2))
 
     def read(self, address, num_words) -> int:
         fetch = self.mem[address: address+num_words]

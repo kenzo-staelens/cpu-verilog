@@ -6,8 +6,8 @@ class ALU:
         mask = (2**16-1)
         arg_a = arg_a_in & mask
         arg_b = arg_b_in & mask
-        a_signed = self.unsigned_to_signed(arg_a)
-        b_signed = self.unsigned_to_signed(arg_b)
+        a_signed = self.unsigned_to_signed(arg_a, 16)
+        b_signed = self.unsigned_to_signed(arg_b, 16)
         eq = arg_a_in == arg_b_in
         u_less = arg_a < arg_b
         s_less = a_signed < b_signed
@@ -33,6 +33,7 @@ class ALU:
             case 8:
                 res =  arg_a >> arg_b
             case 9:
+                print('cmp', arg_a, arg_b)
                 res =  cmp
             case 10:
                 res = (arg_a&255)*(arg_b&255)
@@ -41,7 +42,7 @@ class ALU:
         return res & mask
         
     @classmethod
-    def unsigned_to_signed(val, bits):
+    def unsigned_to_signed(cls, val, bits):
         # alu is the only thing that understands
         # negative values, just handle them here
         mask = 1 << (bits - 1)      # e.g. 0x80 for 8 bits

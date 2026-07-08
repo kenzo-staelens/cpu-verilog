@@ -10,4 +10,6 @@ class RegFile:
         return self.mem[address]
     
     def write(self, address, data: int):
+        if address == 0:
+            return
         self.mem[address] = data
