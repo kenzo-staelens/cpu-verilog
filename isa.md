@@ -141,18 +141,6 @@ opcode gets split into 2 parts, high bits correspond to device select while low 
 
 * note: due to no proper reset .. yet, persistent storage is not actually persistent
 
-### Pseudo
-
-Pseudo instructions are a set of additional instructions that can be constructed
-using more basic (defined)
-
-<!-- markdownlint-disable MD033 -->
-|mnemonic|translates|
-|---|---|
-|MOV rd, rb|add rd, zr, rb|
-|HLT|.label halt\_addr<br/>jmp halt\_addr|
-<!-- markdownlint-enable MD033 -->
-
 ## Devices
 
 Device IDs are hardcoded into the fpga fabric, despite hardcoding and somewhat limited Opcode space in instructions it is still possible to select a large amount of devices. Current implementation supports up to 256 devices at 8 bits of device address but may support up to 16 bits (to update in controller).
@@ -190,3 +178,59 @@ jxx arg_b
 Note that there's an exception where rd = r14 due to the jump instruction not receiving the jump flags in time and should be read as fully independent instructions in the same clock cycle.
 
 A small change to the data bus can be made such that jump address is not put on the data bus but instead routed directly to the PC, freeing the bus up for the ALU instead. This would caus Jump instructions to allow side effects mapped 1:1 by to an ALU opcode.
+
+Similar hacks can be produced with mem/io instructions using their bus-driven data.
+
+## Mnemonic Summary
+
+register b or immediate shortened to `B(meaning)`
+
+* all (non cmp) ALU operations assume format `mnemonic rd, ra, B`
+* compare mnemonic is used as `CMP ra, B` and stores to r14 in standard assembler
+* all jump instructions assume `jxx [label, immediate or register value]`
+
+|mode|0000|0001|0010|0011|0100|0101|0110|0111|1000|1001|1010|1011|1100|1101|1110|1111|
+|----|----|----|----|----|----|----|----|----|----|----|----|----|----|----|----|----|
+|  00|NOP| CLk rd| IN rd|OUT B(data)|STS rd|DEV B(device ID)|||||||||||
+|  01|NAND|OR|AND|NOR|ADD|SUB|XOR|LSL| LSR|CMP|MUL||||||
+|  10|SSNOP|JEQ|JLT|JLE|JLT.S|JLE.S|||JMP|JNE|JGE|JGT|JGE.S|JGT.S|||
+|  11|LD rd, B(address)\>|STR ra, B(address)|LD.P rd, B(address)\>|STR.P ra, B(address)|||||||||||||
+
+### pseudo instructions
+
+<!-- markdownlint-disable MD033 -->
+|mnemonic|from instruction(s)|
+|MOV rd, B|add rd, zr, B|
+|HLT|.label halt\_addr<br/>jmp halt\_addr|
+<!-- markdownlint-disable MD033 -->
+
+## Directives
+
+This assembler exposes a couple directives to handle layout and sanity
+
+|implemented|directive|description|
+|---|---|---|
+|x|.org [address literal]|following lines start layout at [address literal]|
+|x|section [.text,.data,.bss,.vector]|start of a logical section, used for merging sections into one block|
+|x|.label [name]|defines a label at this line|
+|x|.macro [name]|starts a macro definition, cannot start a macro within a macro|
+|x|.endmacro|ends the current macro definition|
+|x|%macro [name]|call the macro named [name], arguments not supported|
+|x|.align [align value]|align the following lines such that address is a multiple of [align value]|
+| |.raw|write raw bytes|
+| |.text|write a string literal (8 bits per memory address)|
+| |.include [filename]|inject another file's content here (note: may be reordered due to it's sections, macros etc)|
+
+## Hazards
+
+some combination of instructions in the pipeline causes hazards slowing overall execution.
+note that no reordering occurs to resolve these hazards.
+
+when a hazard is detected NOP is inserted into the second pipeline to resolve this hazard causing only 1 instruction instead of 2 to be executed.
+when a hazard is detected the PC only steps 1 instruction rather than 2.
+
+|hazard|caused by|
+|---|---|
+|not alu|caused when the second fetched instruction is not an ALU instruction|
+|jmp|caused when a jump instruction is the first instruction|
+|RAW|caused when instruction 2 (ra or rb) depends on rd of instruction 1|
