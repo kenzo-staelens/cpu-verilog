@@ -50,7 +50,6 @@ module Pipeline # (
     // fetch delay line
     DelayLine # (.WORD_WIDTH(INSTRUCTION_BITS)) fetch_delay (.clk(clk), .rst(rst), .in(inst), .out(intermediate));
     
-
     // decode delay lines
     DelayLine # (.WORD_WIDTH(2)) delay_mode (.clk(clk), .rst(rst), .in(mode), .out(mode_exec));
     DelayLine # (.WORD_WIDTH(OPCODE_BITS)) delay_opcode (.clk(clk), .rst(rst), .in(opcode), .out(opcode_exec));

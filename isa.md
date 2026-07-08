@@ -22,7 +22,7 @@
 |00|IO|
 |01|ALU|
 |10|JMP|
-|11|STR|
+|11|MEM|
 
 ## Immediate (I)
 
@@ -38,6 +38,8 @@ note: wasted space when immediate b is low, this may change in the future
 |r1-13|gp|contains general data for the cpu|
 |r14|flags|contains flags for JMP opcodes (see section JMP)|
 |r15|sp|current 16 bit stack pointer|
+
+while r14/r15 are technically general purpose registers (only r0 is hardwired to 0), write or reinterpret these registers at your own risk.
 
 ## Opcodes (O)
 
@@ -75,7 +77,7 @@ note: wasted space when immediate b is low, this may change in the future
 |0110|XOR|`a^b`|
 |0111|LSL|`a<<b (logical)`|
 |1000|LSR|`a>>b (logical)`|
-|1001|CMP|Compare*|
+|1001|CMP|Compare\*|
 |1010|MUL|`a*b`|
 |1011|||
 |1100|||
@@ -98,7 +100,7 @@ bit 2 = `(a<b)` signed\
 
 jump directly maps opcode to bits in `arg_a` such that, for the 3 low bits of data (and opcode)
 
-opcode == arg_a (bitwise) or inverted by opcode's high bit resulting in the below table
+opcode == arg\_a (bitwise) or inverted by opcode's high bit resulting in the below table
 
 |opcode[3]|opcode[2:0]|mnemonic|description|
 |---|---|---|---|
@@ -119,9 +121,9 @@ opcode == arg_a (bitwise) or inverted by opcode's high bit resulting in the belo
 
 * when a jump is taken the pipeline gets flushed by tying all destination addresses to 0. for 2 cycles all instructions currently in the pipeline are converted to NOP (all 0) while the pipeline is being filled again.
 
-### STR
+### MEM
 
-STR type operations directly interract with memory and secondary storage
+MEM type operations directly interract with memory and secondary storage
 note that the stack resides at the end of program memory (the storage device, not right after program memory). Stack pointer starts at the last byte of memory and decreases as the stack grows.
 
 opcode gets split into 2 parts, high bits correspond to device select while low bits correspond to operation select
@@ -138,18 +140,6 @@ opcode gets split into 2 parts, high bits correspond to device select while low 
 |01|11||not implemented|
 
 * note: due to no proper reset .. yet, persistent storage is not actually persistent
-
-### Pseudo
-
-Pseudo instructions are a set of additional instructions that can be constructed
-using more basic (defined)
-
-<!-- markdownlint-disable MD033 -->
-|mnemonic|translates|
-|---|---|
-|MOV rd, rb|add rd, zr, rb|
-|HLT|.label halt_addr<br/>jmp halt_addr|
-<!-- markdownlint-enable MD033 -->
 
 ## Devices
 
@@ -172,3 +162,75 @@ This device is physically connected to the micro-usb rx/tx channel
 |---|---|---|
 |0|clear to send|high when a new value can be put on the channel|
 |1|recieved data waiting (to be read by cpu)|high when a value is available|
+
+
+## Accidental instructions
+
+due to formatting of instructions and consequent processing of said instructions it is possible for non ALU instructions (of which the most relevant being JMP mode instructions) to write a value to the register even though we're not in a writing mode. This is because the register file does not differentiate what or who writes to the shared data bus. Usually this behaviour is desired for memory/io instructions that read data (driven zero for writes). In JMP instructions this is usually not desired, and therefore instructions should tie destination to r0 to void the bus data.
+
+If desired developer can compress code in the following format into a single jump instruction with rd set.
+
+```
+mov rd, arb_b
+jxx arg_b
+```
+
+Note that there's an exception where rd = r14 due to the jump instruction not receiving the jump flags in time and should be read as fully independent instructions in the same clock cycle.
+
+A small change to the data bus can be made such that jump address is not put on the data bus but instead routed directly to the PC, freeing the bus up for the ALU instead. This would caus Jump instructions to allow side effects mapped 1:1 by to an ALU opcode.
+
+Similar hacks can be produced with mem/io instructions using their bus-driven data.
+
+## Mnemonic Summary
+
+register b or immediate shortened to `B(meaning)`
+
+* all (non cmp) ALU operations assume format `mnemonic rd, ra, B`
+* compare mnemonic is used as `CMP ra, B` and stores to r14 in standard assembler
+* all jump instructions assume `jxx [label, immediate or register value]`
+
+|mode|0000|0001|0010|0011|0100|0101|0110|0111|1000|1001|1010|1011|1100|1101|1110|1111|
+|----|----|----|----|----|----|----|----|----|----|----|----|----|----|----|----|----|
+|  00|NOP| CLk rd| IN rd|OUT B(data)|STS rd|DEV B(device ID)|||||||||||
+|  01|NAND|OR|AND|NOR|ADD|SUB|XOR|LSL| LSR|CMP|MUL||||||
+|  10|SSNOP|JEQ|JLT|JLE|JLT.S|JLE.S|||JMP|JNE|JGE|JGT|JGE.S|JGT.S|||
+|  11|LD rd, B(address)\>|STR ra, B(address)|LD.P rd, B(address)\>|STR.P ra, B(address)|||||||||||||
+
+### pseudo instructions
+
+<!-- markdownlint-disable MD033 -->
+|mnemonic|from instruction(s)|
+|MOV rd, B|add rd, zr, B|
+|HLT|.label halt\_addr<br/>jmp halt\_addr|
+<!-- markdownlint-disable MD033 -->
+
+## Directives
+
+This assembler exposes a couple directives to handle layout and sanity
+
+|implemented|directive|description|
+|---|---|---|
+|x|.org [address literal]|following lines start layout at [address literal]|
+|x|section [.text,.data,.bss,.vector]|start of a logical section, used for merging sections into one block|
+|x|.label [name]|defines a label at this line|
+|x|.macro [name]|starts a macro definition, cannot start a macro within a macro|
+|x|.endmacro|ends the current macro definition|
+|x|%macro [name]|call the macro named [name], arguments not supported|
+|x|.align [align value]|align the following lines such that address is a multiple of [align value]|
+| |.raw|write raw bytes|
+| |.text|write a string literal (8 bits per memory address)|
+| |.include [filename]|inject another file's content here (note: may be reordered due to it's sections, macros etc)|
+
+## Hazards
+
+some combination of instructions in the pipeline causes hazards slowing overall execution.
+note that no reordering occurs to resolve these hazards.
+
+when a hazard is detected NOP is inserted into the second pipeline to resolve this hazard causing only 1 instruction instead of 2 to be executed.
+when a hazard is detected the PC only steps 1 instruction rather than 2.
+
+|hazard|caused by|
+|---|---|
+|not alu|caused when the second fetched instruction is not an ALU instruction|
+|jmp|caused when a jump instruction is the first instruction|
+|RAW|caused when instruction 2 (ra or rb) depends on rd of instruction 1|
