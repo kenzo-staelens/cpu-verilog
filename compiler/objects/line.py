@@ -5,6 +5,7 @@ class Line:
     _MNEMONIC: str = '???'
     _ENCODABLE = True
     _NUM_ARGS = 0
+    _SIZE = 0
     def __init__(self, line_nr, line_src):
         self.line_nr = line_nr
         self.address = 0
@@ -27,3 +28,6 @@ class Line:
 
     def copy(self) -> Self:
         raise NotImplementedError(f'Copy not implemented on instance of {self._MNEMONIC}')
+    
+    def encode(self):
+        raise NotImplementedError(f'Encode not implemented on instance of {self._MNEMONIC}')

@@ -1,8 +1,10 @@
 from .line import Line
 from .operand import Operand
+from typing import cast
 
 class Inst(Line):
     _OPCODE = 0
+    _SIZE = 2
     def __init__(self, line_nr, line_src):
         super().__init__(line_nr, line_src)
         self._opcode = self._OPCODE
@@ -48,3 +50,17 @@ class Inst(Line):
 
     def _parse_args(self, args):
         pass
+
+    def encode(self):
+        encoded = 0
+        # mode
+        encoded += self._mode << 29
+        encoded += self._immediate << 28
+        encoded += self._opcode << 24
+        encoded += cast(int, self._dst.value) << 20
+        encoded += cast(int, self._arg_a.value) << 16
+        if self._immediate:
+            encoded += cast(int, self._arg_b.value)
+        else:
+            encoded += cast(int, self._arg_b.value) << 8
+        self.encoded = cast(int,encoded)

@@ -1,6 +1,6 @@
 from compiler.objects import Inst
 from .jmp import JMP
-from compiler.directives.directives import Label
+from compiler.directives import Label
 from compiler.opcodes.alu import ADD
 
 # fully internal (not %macro definitions) but ones that don't

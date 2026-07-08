@@ -163,14 +163,13 @@ This device is physically connected to the micro-usb rx/tx channel
 |0|clear to send|high when a new value can be put on the channel|
 |1|recieved data waiting (to be read by cpu)|high when a value is available|
 
-
 ## Accidental instructions
 
 due to formatting of instructions and consequent processing of said instructions it is possible for non ALU instructions (of which the most relevant being JMP mode instructions) to write a value to the register even though we're not in a writing mode. This is because the register file does not differentiate what or who writes to the shared data bus. Usually this behaviour is desired for memory/io instructions that read data (driven zero for writes). In JMP instructions this is usually not desired, and therefore instructions should tie destination to r0 to void the bus data.
 
 If desired developer can compress code in the following format into a single jump instruction with rd set.
 
-```
+```asm
 mov rd, arb_b
 jxx arg_b
 ```
@@ -191,10 +190,10 @@ register b or immediate shortened to `B(meaning)`
 
 |mode|0000|0001|0010|0011|0100|0101|0110|0111|1000|1001|1010|1011|1100|1101|1110|1111|
 |----|----|----|----|----|----|----|----|----|----|----|----|----|----|----|----|----|
-|  00|NOP| CLk rd| IN rd|OUT B(data)|STS rd|DEV B(device ID)|||||||||||
-|  01|NAND|OR|AND|NOR|ADD|SUB|XOR|LSL| LSR|CMP|MUL||||||
-|  10|SSNOP|JEQ|JLT|JLE|JLT.S|JLE.S|||JMP|JNE|JGE|JGT|JGE.S|JGT.S|||
-|  11|LD rd, B(address)\>|STR ra, B(address)|LD.P rd, B(address)\>|STR.P ra, B(address)|||||||||||||
+|00|NOP|CLk rd|IN rd|OUT B(data)|STS rd|DEV B(device ID)|||||||||||
+|01|NAND|OR|AND|NOR|ADD|SUB|XOR|LSL|LSR|CMP|MUL||||||
+|10|SSNOP|JEQ|JLT|JLE|JLT.S|JLE.S|||JMP|JNE|JGE|JGT|JGE.S|JGT.S|||
+|11|LD rd, B(address)\>|STR ra, B(address)|LD.P rd, B(address)\>|STR.P ra, B(address)|||||||||||||
 
 ### pseudo instructions
 
@@ -210,16 +209,20 @@ This assembler exposes a couple directives to handle layout and sanity
 
 |implemented|directive|description|
 |---|---|---|
-|x|.org [address literal]|following lines start layout at [address literal]|
-|x|section [.text,.data,.bss,.vector]|start of a logical section, used for merging sections into one block|
-|x|.label [name]|defines a label at this line|
-|x|.macro [name]|starts a macro definition, cannot start a macro within a macro|
-|x|.endmacro|ends the current macro definition|
-|x|%macro [name]|call the macro named [name], arguments not supported|
-|x|.align [align value]|align the following lines such that address is a multiple of [align value]|
-| |.raw|write raw bytes|
-| |.text|write a string literal (8 bits per memory address)|
-| |.include [filename]|inject another file's content here (note: may be reordered due to it's sections, macros etc)|
+|&check;|.org [address literal]|following lines start layout at [address literal]|
+|&check;|section [.text,.data,.bss,.vector]|start of a logical section, used for merging sections into one block|
+|&check;|.label [name]|defines a label at this line|
+|&check;|.macro [name]|starts a macro definition, cannot start a macro within a macro|
+|&check;|.endmacro|ends the current macro definition|
+|&check;|%macro [name]|call the macro named [name], arguments not supported|
+|&check;|.align [align value]|align the following lines such that address is a multiple of [align value]|
+|&check;|.raw|write raw bytes|
+|&check;|.text|write a string literal (lower 8 bits per memory address)|
+|&cross;|.include [filename]|inject another file's content here (note: may be reordered due to it's sections, macros etc)|
+|&cross;|.repeat [n]|repeat next line n times|
+
+note: bytes in .raw directives will left-pad with zeroes to fill whole words when 1/3/5/etc bytes are input, this is because
+otherwise instruction addresses cannot be computed properly in this 16-bit architecture
 
 ## Hazards
 

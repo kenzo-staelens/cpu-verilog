@@ -1,5 +1,5 @@
 from compiler.objects import Inst, UnresolvedMacro, Line
-from compiler.directives.directives import Macro, Endmacro
+from compiler.directives import Macro, Endmacro
 from compiler.errors import ResolverError
 from .base_processor import BaseProcessor
 from typing import cast

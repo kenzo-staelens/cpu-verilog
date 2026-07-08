@@ -21,6 +21,7 @@ BUILD_MARKERS := $(SOURCES:%=$(OUTDIR)/%.build)
 
 # Shortcut rule: “boot.build” depends on “programs/out/boot.build”
 $(SOURCES:%=%.build): %.build: $(OUTDIR)/%.build
+$(SOURCES:%=%.prog): %.prog: $(OUTDIR)/%.prog
 
 # === Default: build all sources ===
 .PHONY: all
@@ -30,12 +31,15 @@ all: $(BUILD_MARKERS)
 
 # === Build a specific source and sentinel ===
 $(BUILDDIR)/%.mem: $(SRCDIR)/%.asm | $(BUILDDIR)
-	python compile.py -f $< -o $(BUILDDIR)/$*.mem $(VERBOSE)
+	python compile.py -f $< -o $(BUILDDIR)/$*.mem $(VERBOSE) --hex
 
 $(OUTDIR)/%.build: $(BUILDDIR)/%.mem | $(OUTDIR) $(OUTDIR)/%/
 # 	mkdir $(OUTDIR)
 	python py_gen/gen_reg.py --build-dir $(BUILDDIR) --basename $* --outdir $(OUTDIR)/$*
 	touch $@
+
+$(OUTDIR)/%.prog: $(SRCDIR)/%.asm | $(OUTDIR)
+	python compile.py -f $< -o $(OUTDIR)/$*.prog $(VERBOSE) --exe
 
 
 # === Ensure directories exist ===

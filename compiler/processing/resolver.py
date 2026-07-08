@@ -1,5 +1,5 @@
 from compiler.objects import Inst, Directive
-from compiler.directives.directives import Label
+from compiler.directives import Label
 from compiler.errors import ResolverError
 from .base_processor import BaseProcessor
 import re
@@ -15,7 +15,8 @@ class Resolver(BaseProcessor):
         self.max_addresses = max_addresses
     
     def resolve_directive(self, directive: Directive):
-        self.current_address = directive.resolve(self.current_address)
+        directive.resolve(self.current_address)
+        self.current_address += directive._SIZE
         if self.current_address > self.max_addresses:
             raise RuntimeError(f'Failed to resolve all instructions within {self.max_addresses} addresses')
         if isinstance(directive, Label):
@@ -36,7 +37,7 @@ class Resolver(BaseProcessor):
         if not inst._arg_b.resolved:
             inst._arg_b.resolve()
         inst.address = self.current_address
-        self.current_address += self.inst_width
+        self.current_address += inst._SIZE
 
     def resolve_label(self, line_nr, inst: Inst):
         arg_b = inst._arg_b

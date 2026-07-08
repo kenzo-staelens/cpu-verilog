@@ -1,4 +1,4 @@
-from compiler.directives.directives import Section, Org
+from compiler.directives import Section, Org
 from typing import cast
 from .base_processor import BaseProcessor
 

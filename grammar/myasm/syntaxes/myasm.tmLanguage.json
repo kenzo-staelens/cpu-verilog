@@ -45,7 +45,7 @@
         },
         {
           "name": "keyword.directive.myasm",
-          "match": "\\.(label|macro|endmacro|org|align)\\b"
+          "match": "\\.(label|macro|endmacro|org|align|raw|text)\\b"
         },
         {
           "name": "keyword.directive.section.myasm",
@@ -85,6 +85,10 @@
         {
           "name": "string.quoted.single",
           "match": "'.'"
+        },
+        {
+          "name": "string.quoted.double",
+          "match": "\".*\""
         }
       ]
     },

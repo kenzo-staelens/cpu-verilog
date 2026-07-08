@@ -10,7 +10,10 @@ parser.add_argument('--outfile', '-o', required=True)
 parser.add_argument('--verbose', '-v', action='store_true')
 parser.add_argument('--debug', '-d', action='store_true')
 parser.add_argument('--dry-run', action='store_true')
-parser.add_argument('--bin', action='store_true')
+group = parser.add_mutually_exclusive_group(required=True)
+group.add_argument('--hex', action='store_true')
+group.add_argument('--bin', action='store_true')
+group.add_argument('--exe', action='store_true')
 
 def render_state(hdr, args, instructions):
     if not args.verbose:
@@ -57,6 +60,8 @@ if __name__ == '__main__':
     # todo proper sections
     if args.bin:
         assembler = Assembler(args.outfile, args.dry_run, instructions, mode=WriteModes.BIN)
+    elif args.exe:
+        assembler = Assembler(args.outfile, args.dry_run, instructions, mode=WriteModes.EXE)
     else:
         assembler = Assembler(args.outfile, args.dry_run, instructions)
     assembler.write_file()

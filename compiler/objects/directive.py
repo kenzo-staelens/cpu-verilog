@@ -7,6 +7,7 @@ class Directive(Line):
         super().__init__(line_nr, line_src)
 
     def resolve(self, propose_address):
+        # assumes a char fully fits
         self.address = propose_address
         return self.address
 

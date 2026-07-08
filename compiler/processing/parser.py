@@ -61,7 +61,7 @@ class Parser:
                     else:
                         parsed += self.parse_instruction(line, len(parsed), line_src)
                 except (ParseError, SyntaxError) as e:
-                    print(f"error while parsing line \n{i:0>4d}: {line}")
+                    print(f"\x1b[31m\x1b[1merror while parsing line\x1b[0m \n{i:0>4d}: {line}")
                     print(str(e))
                     print(line_src)
                     sys.exit()
