@@ -24,4 +24,4 @@ class BaseProcessor():
             print('\x1b[31m\x1b[1m' + self.error_message + '\x1b[0m')
             print(str(e))
             print()
-            sys.exit()
+            sys.exit(2)

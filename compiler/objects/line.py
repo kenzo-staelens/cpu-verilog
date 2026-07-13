@@ -13,7 +13,7 @@ class Line:
         self.line_src: str = line_src
 
     def parse_args(self, args):
-        if len(args) != self._NUM_ARGS:
+        if self._NUM_ARGS is not None and len(args) != self._NUM_ARGS:
             raise SyntaxError(f'expected {self._NUM_ARGS} but got {len(args)}')
         self._parse_args(args)
 

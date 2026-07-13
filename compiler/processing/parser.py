@@ -64,5 +64,5 @@ class Parser:
                     print(f"\x1b[31m\x1b[1merror while parsing line\x1b[0m \n{i:0>4d}: {line}")
                     print(str(e))
                     print(line_src)
-                    sys.exit()
+                    sys.exit(1)
         return parsed

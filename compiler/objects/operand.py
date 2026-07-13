@@ -1,10 +1,17 @@
 import re
 from .line import Line
-from compiler.errors import OperandError, MissingRegisterError, InvalidLiteralError
+from compiler.errors import (
+    OperandError,
+    MissingRegisterError,
+    InvalidLiteralError,
+    DataSizeError,
+)
 
 from math import ceil
 
 class Operand:
+    _MAX_LITERAL_ENCODING_SIZE = 16
+
     def __init__(self, inst: Line, value:int|str=0, literal:bool=True, resolved:bool=True, used=True):
         self.unresolved_value = value
         self.value = value
@@ -73,6 +80,37 @@ class Operand:
             raise MissingRegisterError(f'invalid register {operand}')
 
     @classmethod
+    def _check_encoding_size(cls, literal, rawsize):
+        if rawsize*8 > cls._MAX_LITERAL_ENCODING_SIZE:
+            message = (
+                f'attempted to apply {literal} '
+                f'in {cls._MAX_LITERAL_ENCODING_SIZE} bits but not enough space is available.\n'
+                'please separate larger data by commas'
+            )
+            raise DataSizeError(message)
+
+    @classmethod
+    def _remap_octal(cls, value):
+        map_data = {
+            '0': '000',
+            '1': '001',
+            '2': '010',
+            '3': '011',
+            '4': '100',
+            '5': '101',
+            '6': '110',
+            '7': '111',
+        }
+        mapped = ''
+        for char in value:
+            mapped += map_data[char]
+        
+        if value[0] != '0':
+            mapped = mapped.lstrip('0')
+        print(mapped)
+        return mapped
+
+    @classmethod
     def parse_literal(cls, inst: Line, operand: str):
         try:
             if operand.startswith('0x'):
@@ -83,16 +121,18 @@ class Operand:
                 b = ceil(len(operand[2:])/8)
             elif operand.startswith('0o'):
                 v = int(operand, 8)
-                b = ceil(len(operand[2:])*3/8)
+                b =ceil(len(cls._remap_octal(operand[2:]))/8)
+                # b = ceil(len(operand[2:])*3/8)
             else:
                 v= int(operand)
                 temp = v
                 b = 0
                 while temp>0:
                     b+=1
-                    temp >> 8
+                    temp >>= 8
             op = Operand(inst, v, True)
             op.raw_size = b
+            cls._check_encoding_size(operand, b)
             return op
         except ValueError:
             raise InvalidLiteralError(f'invalid literal {operand}')
@@ -129,7 +169,7 @@ class Operand:
     
     @classmethod
     def parse_operand(
-        self,
+        cls,
         inst,
         operand: str,
         allow_register: bool = False,
@@ -137,22 +177,26 @@ class Operand:
         allow_string: bool = False,
         allow_address: bool = False,
         allow_word: bool = False,
+        literal_max: int | None = None
     ):
+        if literal_max and isinstance(literal_max, int) and literal_max>0:
+            cls._MAX_LITERAL_ENCODING_SIZE = literal_max
+        
         if allow_register and (
             re.match(r'r\d+',operand, )
             or operand in {'zr', 'flags', 'sp'}
         ):
-            return self.parse_register(inst, operand)
+            return cls.parse_register(inst, operand)
         if allow_literal and operand.startswith("'"):
-            return self.parse_char(inst, operand)
+            return cls.parse_char(inst, operand)
         if allow_string and operand.startswith('"'):
-            return self.parse_string(inst, operand)
-        if allow_literal and self._valid_literal(operand):
-            return self.parse_literal(inst, operand)
+            return cls.parse_string(inst, operand)
+        if allow_literal and cls._valid_literal(operand):
+            return cls.parse_literal(inst, operand)
         if allow_address and operand.startswith('='):
-            return self.parse_address(inst, operand)
+            return cls.parse_address(inst, operand)
         if allow_word:
-            return self.parse_word(inst, operand)
+            return cls.parse_word(inst, operand)
         expect_flags = (
             allow_register,
             allow_literal,

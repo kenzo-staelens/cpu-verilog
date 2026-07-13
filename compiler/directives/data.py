@@ -1,16 +1,28 @@
 from compiler.objects import Directive, Operand
-from math import ceil
+import struct
 
 class Raw(Directive):
+    _MAX_ENCODING_SIZE = 16  #BITS
     _MNEMONIC = 'raw'
-    _NUM_ARGS = 1
+    _NUM_ARGS = None
     _ENCODABLE = 1
+
+    def __init__(self, line_nr, line_src):
+        super().__init__(line_nr, line_src)
+        self._raw_data = 0
+        self._SIZE = 0
 
     def _parse_args(self, args):
         # passing through operand for validation, not so much storage
-        op = Operand.parse_operand(self, args[0], allow_literal=True)
-        self._raw_data = op.value
-        self._SIZE = ceil(op.raw_size/2)
+        raw_datas = []
+        for arg in args:
+            op = Operand.parse_operand(self, arg, allow_literal=True)
+            chunk = op.value
+            raw_datas.append(chunk)
+        
+        # struct potentially overkill but i'm lazy
+        self._raw_data = int.from_bytes(struct.pack(f'>{len(raw_datas)}h',*raw_datas))
+        self._SIZE = len(args)
         # literal off-alignment bytes not supported due to cannot compute instruction address
 
     def __str__(self):
